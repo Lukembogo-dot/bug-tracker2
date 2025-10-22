@@ -27,11 +27,16 @@ export class UserRepository {
     }
   }
 
-  // Get user by email
+  // Get user by email (case insensitive)
   static async getUserByEmail(email: string): Promise<User | null> {
     try {
       const pool = await getPool();
-      const result = await pool.query`SELECT * FROM Users WHERE Email = ${email}`;
+      const result = await pool.request()
+        .input("email", email.toLowerCase())
+        .query(`
+          SELECT * FROM Users
+          WHERE LOWER(Email) = LOWER(@email)
+        `);
       return result.recordset[0] || null;
     } catch (error) {
       console.error('Error fetching user by email:', error);
