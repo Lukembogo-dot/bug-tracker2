@@ -12,6 +12,7 @@ const sqlConfig = {
 };
 
 app.listen(3000, async () => {
+  console.log("Starting server...");
   try {
     const dbConnected = await getPool();
     if(dbConnected){
