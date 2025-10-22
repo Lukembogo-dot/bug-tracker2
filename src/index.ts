@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import { getPool } from '../db/config';
 const  app = express();
 dotenv.config();
 
@@ -10,6 +11,18 @@ const sqlConfig = {
   database: process.env.SQL_DB,
 };
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+app.listen(3000, async () => {
+  console.log("Starting server...");
+  try {
+    const dbConnected = await getPool();
+    if(dbConnected){
+      console.log("Server is running on localhost://3000 🌐");
+      console.log("Database connected Successfully✅");
+    }
+    else{
+      console.log("Database connection error❌");
+    }
+  } catch (error) {
+    console.log("Error starting the server", error);
+  }
 });

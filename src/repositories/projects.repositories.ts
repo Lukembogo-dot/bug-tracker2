@@ -1,11 +1,13 @@
-import { sql } from '../../db/config';
+import { getPool } from '../../db/config';
 import { Project, CreateProject, UpdateProject } from '../Types/projects.types';
+import sql from 'mssql';
 
 export class ProjectRepository {
   // Get all projects
   static async getAllProjects(): Promise<Project[]> {
     try {
-      const result = await sql.query`SELECT * FROM Projects ORDER BY CreatedAt DESC`;
+      const pool = await getPool();
+      const result = await pool.query`SELECT * FROM Projects ORDER BY CreatedAt DESC`;
       return result.recordset;
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -16,7 +18,8 @@ export class ProjectRepository {
   // Get project by ID
   static async getProjectById(projectId: number): Promise<Project | null> {
     try {
-      const result = await sql.query`SELECT * FROM Projects WHERE ProjectID = ${projectId}`;
+      const pool = await getPool();
+      const result = await pool.query`SELECT * FROM Projects WHERE ProjectID = ${projectId}`;
       return result.recordset[0] || null;
     } catch (error) {
       console.error('Error fetching project by ID:', error);
@@ -27,7 +30,8 @@ export class ProjectRepository {
   // Get projects by creator
   static async getProjectsByCreator(creatorId: number): Promise<Project[]> {
     try {
-      const result = await sql.query`SELECT * FROM Projects WHERE CreatedBy = ${creatorId} ORDER BY CreatedAt DESC`;
+      const pool = await getPool();
+      const result = await pool.query`SELECT * FROM Projects WHERE CreatedBy = ${creatorId} ORDER BY CreatedAt DESC`;
       return result.recordset;
     } catch (error) {
       console.error('Error fetching projects by creator:', error);
@@ -38,11 +42,16 @@ export class ProjectRepository {
   // Create new project
   static async createProject(projectData: CreateProject): Promise<Project> {
     try {
-      const result = await sql.query`
-        INSERT INTO Projects (ProjectName, Description, CreatedBy)
-        OUTPUT INSERTED.*
-        VALUES (${projectData.ProjectName}, ${projectData.Description || null}, ${projectData.CreatedBy})
-      `;
+      const pool = await getPool();
+      const result = await pool.request()
+        .input("projectName", projectData.ProjectName)
+        .input("description", projectData.Description || null)
+        .input("createdBy", projectData.CreatedBy)
+        .query(`
+          INSERT INTO Projects (ProjectName, Description, CreatedBy)
+          OUTPUT INSERTED.*
+          VALUES (@projectName, @description, @createdBy)
+        `);
       return result.recordset[0];
     } catch (error) {
       console.error('Error creating project:', error);
@@ -54,15 +63,12 @@ export class ProjectRepository {
   static async updateProject(projectId: number, projectData: UpdateProject): Promise<Project | null> {
     try {
       const updateFields: string[] = [];
-      const values: any[] = [];
 
       if (projectData.ProjectName) {
         updateFields.push('ProjectName = @projectName');
-        values.push({ name: 'projectName', value: projectData.ProjectName });
       }
       if (projectData.Description !== undefined) {
         updateFields.push('Description = @description');
-        values.push({ name: 'description', value: projectData.Description });
       }
 
       if (updateFields.length === 0) {
@@ -76,10 +82,12 @@ export class ProjectRepository {
         WHERE ProjectID = @projectId
       `;
 
-      values.push({ name: 'projectId', value: projectId });
+      const pool = await getPool();
+      const request = pool.request()
+        .input("projectId", projectId);
 
-      const request = new sql.Request();
-      values.forEach(param => request.input(param.name, param.value));
+      if (projectData.ProjectName) request.input("projectName", projectData.ProjectName);
+      if (projectData.Description !== undefined) request.input("description", projectData.Description);
 
       const result = await request.query(query);
       return result.recordset[0] || null;
@@ -92,7 +100,8 @@ export class ProjectRepository {
   // Delete project
   static async deleteProject(projectId: number): Promise<boolean> {
     try {
-      const result = await sql.query`DELETE FROM Projects WHERE ProjectID = ${projectId}`;
+      const pool = await getPool();
+      const result = await pool.query`DELETE FROM Projects WHERE ProjectID = ${projectId}`;
       return result.rowsAffected[0] > 0;
     } catch (error) {
       console.error('Error deleting project:', error);
