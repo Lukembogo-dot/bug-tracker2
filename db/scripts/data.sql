@@ -1,3 +1,43 @@
+--CREATE TABLES FOR SQL DATABASE.
+
+-- 1. USERS TABLE
+CREATE TABLE Users (
+    UserID INT IDENTITY(1,1) PRIMARY KEY,
+    Username NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(150) UNIQUE NOT NULL,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    Role NVARCHAR(50) DEFAULT 'User',
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- 2. PROJECTS TABLE
+CREATE TABLE Projects (
+    ProjectID INT IDENTITY(1,1) PRIMARY KEY,
+    ProjectName NVARCHAR(150) NOT NULL,
+    Description NVARCHAR(MAX),
+    CreatedBy INT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID)
+);
+
+-- 3. BUGS TABLE
+DROP TABLE Bugs;
+CREATE TABLE Bugs (
+    BugID INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(200) NOT NULL,
+    Description NVARCHAR(MAX),
+    Status NVARCHAR(50) DEFAULT 'Open',
+    Priority NVARCHAR(50) DEFAULT 'Medium',
+    ProjectID INT NOT NULL,
+    ReportedBy INT NULL,
+	AssignedTo INT NULL
+);
+
+
+
+
+
+
 -- Insert sample data into Users table
 
 INSERT INTO Users (Username, Email, PasswordHash, Role)
