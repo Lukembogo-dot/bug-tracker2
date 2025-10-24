@@ -33,7 +33,7 @@ return{
     Username: username,
     Email: email,
     PasswordHash: passwordHash,
-    Role: Role && typeof Role === 'string' ? Role : 'user'
+    Role: Role && typeof Role === 'string' ? Role : 'User'
 }
 }
 
