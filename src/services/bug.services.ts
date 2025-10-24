@@ -1,315 +1,271 @@
-/**
- * Bug Services Module
- *
- * This module provides business logic for bug management operations.
- * It acts as an intermediary between controllers and repositories, handling:
- * - Input validation and sanitization
- * - Business rule enforcement
- * - Error handling and transformation
- * - Data transformation between layers
- *
- * The service layer ensures data integrity and implements business rules
- * before calling repository methods for database operations.
- */
+import { BugRepository } from "../repositories/bugs.repositories";
+import { ProjectRepository } from "../repositories/projects.repositories";
+import { Bug, CreateBug, UpdateBug } from "../Types/bugs.types";
+import { Response } from 'express';
+import { Request } from 'express';
 
-import { BugRepository } from '../repositories/bugs.repositories';
-import { Bug, CreateBug, UpdateBug } from '../Types/bugs.types';
+const validateAndParseBugData = async (body: any): Promise<CreateBug> => {
+    const { Title, Description, Status, Priority, ProjectID, ReportedBy, AssignedTo } = body ?? {};
 
-/**
- * Validates and sanitizes data for creating a new bug
- *
- * Business Rules:
- * - Title is required and must be a non-empty string
- * - ProjectID is required and must be a valid number
- * - Description is optional but trimmed if provided
- * - Status defaults to 'Open' if not specified
- * - Priority defaults to 'Medium' if not specified
- * - ReportedBy and AssignedTo are optional user IDs
- *
- * @param data - Raw input data from the request body
- * @returns Validated and sanitized CreateBug object
- * @throws Error if validation fails
- */
-const validateCreateBugData = (data: any): CreateBug => {
-    // Validate required title field
-    if (!data.Title || typeof data.Title !== 'string') {
-        throw new Error('Title is required and must be a string');
+    if (!Title || !ProjectID) {
+        throw new Error("Missing required fields: Title and ProjectID are required");
     }
 
-    // Validate required project ID
-    if (!data.ProjectID || typeof data.ProjectID !== 'number') {
-        throw new Error('ProjectID is required and must be a number');
+    if (typeof Title !== 'string' || typeof ProjectID !== 'number') {
+        throw new Error("Invalid field types: Title must be string, ProjectID must be number");
     }
 
-    // Return sanitized data with defaults applied
-    return {
-        Title: data.Title.trim(),
-        Description: data.Description ? data.Description.trim() : undefined,
-        Status: data.Status || 'Open',
-        Priority: data.Priority || 'Medium',
-        ProjectID: data.ProjectID,
-        ReportedBy: data.ReportedBy || undefined,
-        AssignedTo: data.AssignedTo || undefined,
-    };
-};
-
-/**
- * Validates and sanitizes data for updating an existing bug
- *
- * Business Rules:
- * - At least one field must be provided for update
- * - Title must be a string if provided
- * - Description can be set to null to remove it
- * - Status and Priority must be strings if provided
- * - AssignedTo can be a number (user ID) or null to unassign
- *
- * @param data - Raw input data from the request body
- * @returns Validated and sanitized UpdateBug object
- * @throws Error if validation fails or no fields to update
- */
-const validateUpdateBugData = (data: any): UpdateBug => {
-    const updateData: UpdateBug = {};
-
-    // Validate and sanitize title if provided
-    if (data.Title !== undefined) {
-        if (typeof data.Title !== 'string') {
-            throw new Error('Title must be a string');
-        }
-        updateData.Title = data.Title.trim();
+    const title = Title.trim();
+    if (title.length === 0) {
+        throw new Error("Title cannot be empty");
     }
 
-    // Handle description (can be set to null to remove)
-    if (data.Description !== undefined) {
-        updateData.Description = data.Description ? data.Description.trim() : null;
+    // Validate project exists
+    const project = await ProjectRepository.getProjectById(ProjectID);
+    if (!project) {
+        throw new Error("Invalid ProjectID: Project does not exist");
     }
 
     // Validate status if provided
-    if (data.Status !== undefined) {
-        if (typeof data.Status !== 'string') {
-            throw new Error('Status must be a string');
-        }
-        updateData.Status = data.Status;
+    const validStatuses = ['Open', 'In Progress', 'Resolved', 'Closed'];
+    if (Status && !validStatuses.includes(Status)) {
+        throw new Error(`Invalid Status: Must be one of ${validStatuses.join(', ')}`);
     }
 
     // Validate priority if provided
-    if (data.Priority !== undefined) {
-        if (typeof data.Priority !== 'string') {
-            throw new Error('Priority must be a string');
-        }
-        updateData.Priority = data.Priority;
+    const validPriorities = ['Low', 'Medium', 'High', 'Critical'];
+    if (Priority && !validPriorities.includes(Priority)) {
+        throw new Error(`Invalid Priority: Must be one of ${validPriorities.join(', ')}`);
     }
 
-    // Validate assigned user ID if provided
-    if (data.AssignedTo !== undefined) {
-        if (data.AssignedTo !== null && typeof data.AssignedTo !== 'number') {
-            throw new Error('AssignedTo must be a number or null');
-        }
-        updateData.AssignedTo = data.AssignedTo;
-    }
-
-    // Ensure at least one field is being updated
-    if (Object.keys(updateData).length === 0) {
-        throw new Error('No valid fields to update');
-    }
-
-    return updateData;
+    return {
+        Title: title,
+        Description: Description || undefined,
+        Status: Status || 'Open',
+        Priority: Priority || 'Medium',
+        ProjectID,
+        ReportedBy: ReportedBy || undefined,
+        AssignedTo: AssignedTo || undefined
+    };
 };
 
-/**
- * Retrieves all bugs from the database
- *
- * This function provides a complete list of all bugs across all projects,
- * ordered by creation date (most recent first). Used for administrative
- * views or when filtering is not required.
- *
- * @returns Promise resolving to array of all Bug objects
- * @throws Error if database operation fails
- */
-export const getAllBugs = async (): Promise<Bug[]> => {
-    try {
-        return await BugRepository.getAllBugs();
-    } catch (error) {
-        console.error('Error in getAllBugs service:', error);
-        throw error;
+const validateAndParseUpdateBugData = (body: any): UpdateBug => {
+    const { Title, Description, Status, Priority, AssignedTo } = body ?? {};
+
+    if (Title !== undefined && (typeof Title !== 'string' || Title.trim().length === 0)) {
+        throw new Error("Invalid Title: Must be non-empty string");
     }
+
+    // Validate status if provided
+    const validStatuses = ['Open', 'In Progress', 'Resolved', 'Closed'];
+    if (Status && !validStatuses.includes(Status)) {
+        throw new Error(`Invalid Status: Must be one of ${validStatuses.join(', ')}`);
+    }
+
+    // Validate priority if provided
+    const validPriorities = ['Low', 'Medium', 'High', 'Critical'];
+    if (Priority && !validPriorities.includes(Priority)) {
+        throw new Error(`Invalid Priority: Must be one of ${validPriorities.join(', ')}`);
+    }
+
+    return {
+        Title: Title ? Title.trim() : undefined,
+        Description,
+        Status,
+        Priority,
+        AssignedTo
+    };
 };
 
-/**
- * Retrieves a specific bug by its ID
- *
- * Validates the bug ID parameter and fetches the corresponding bug record.
- * Returns null if the bug doesn't exist, which allows controllers to
- * return appropriate 404 responses.
- *
- * @param bugId - The unique identifier of the bug
- * @returns Promise resolving to Bug object or null if not found
- * @throws Error if bugId is invalid or database operation fails
- */
-export const getBugById = async (bugId: number): Promise<Bug | null> => {
+// Get all bugs
+export const getAllBugs = async (req: Request, res: Response) => {
     try {
-        if (!bugId || typeof bugId !== 'number') {
-            throw new Error('Valid bug ID is required');
-        }
-        return await BugRepository.getBugById(bugId);
-    } catch (error) {
-        console.error('Error in getBugById service:', error);
-        throw error;
+        const bugs: Bug[] = await BugRepository.getAllBugs();
+        return res.status(200).json(bugs);
+    } catch (error: any) {
+        console.error('Error fetching bugs:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Retrieves all bugs associated with a specific project
- *
- * This is commonly used in project dashboards to show all bugs
- * within a particular project scope, ordered by creation date.
- *
- * @param projectId - The unique identifier of the project
- * @returns Promise resolving to array of Bug objects for the project
- * @throws Error if projectId is invalid or database operation fails
- */
-export const getBugsByProject = async (projectId: number): Promise<Bug[]> => {
+// Get bug by ID
+export const getBugById = async (req: Request, res: Response) => {
     try {
-        if (!projectId || typeof projectId !== 'number') {
-            throw new Error('Valid project ID is required');
+        const bugId = parseInt(req.params.id, 10);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: 'Invalid bug ID' });
         }
-        return await BugRepository.getBugsByProject(projectId);
-    } catch (error) {
-        console.error('Error in getBugsByProject service:', error);
-        throw error;
+
+        const bug: Bug | null = await BugRepository.getBugById(bugId);
+        if (!bug) {
+            return res.status(404).json({ message: 'Bug not found' });
+        }
+
+        return res.status(200).json(bug);
+    } catch (error: any) {
+        console.error('Error fetching bug by ID:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Retrieves all bugs assigned to a specific user
- *
- * Used to show a user's workload or task list. Only returns bugs
- * where the AssignedTo field matches the provided user ID.
- *
- * @param assigneeId - The unique identifier of the assigned user
- * @returns Promise resolving to array of Bug objects assigned to the user
- * @throws Error if assigneeId is invalid or database operation fails
- */
-export const getBugsByAssignee = async (assigneeId: number): Promise<Bug[]> => {
+// Get bugs by project
+export const getBugsByProject = async (req: Request, res: Response) => {
     try {
-        if (!assigneeId || typeof assigneeId !== 'number') {
-            throw new Error('Valid assignee ID is required');
+        const projectId = parseInt(req.params.projectId, 10);
+        if (isNaN(projectId)) {
+            return res.status(400).json({ message: 'Invalid project ID' });
         }
-        return await BugRepository.getBugsByAssignee(assigneeId);
-    } catch (error) {
-        console.error('Error in getBugsByAssignee service:', error);
-        throw error;
+
+        const bugs: Bug[] = await BugRepository.getBugsByProject(projectId);
+        return res.status(200).json(bugs);
+    } catch (error: any) {
+        console.error('Error fetching bugs by project:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Retrieves all bugs reported by a specific user
- *
- * Shows the bug reporting history of a user. Useful for user profiles
- * or tracking who reported which issues.
- *
- * @param reporterId - The unique identifier of the reporting user
- * @returns Promise resolving to array of Bug objects reported by the user
- * @throws Error if reporterId is invalid or database operation fails
- */
-export const getBugsByReporter = async (reporterId: number): Promise<Bug[]> => {
+// Get bugs by assignee
+export const getBugsByAssignee = async (req: Request, res: Response) => {
     try {
-        if (!reporterId || typeof reporterId !== 'number') {
-            throw new Error('Valid reporter ID is required');
+        const assigneeId = parseInt(req.params.assigneeId, 10);
+        if (isNaN(assigneeId)) {
+            return res.status(400).json({ message: 'Invalid assignee ID' });
         }
-        return await BugRepository.getBugsByReporter(reporterId);
-    } catch (error) {
-        console.error('Error in getBugsByReporter service:', error);
-        throw error;
+
+        const bugs: Bug[] = await BugRepository.getBugsByAssignee(assigneeId);
+        return res.status(200).json(bugs);
+    } catch (error: any) {
+        console.error('Error fetching bugs by assignee:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Retrieves all bugs with a specific status
- *
- * Useful for filtering bugs by their current state (Open, In Progress, Resolved, etc.).
- * Commonly used in dashboards and reporting features.
- *
- * @param status - The status string to filter by (e.g., 'Open', 'In Progress')
- * @returns Promise resolving to array of Bug objects with the specified status
- * @throws Error if status is invalid or database operation fails
- */
-export const getBugsByStatus = async (status: string): Promise<Bug[]> => {
+// Get bugs by reporter
+export const getBugsByReporter = async (req: Request, res: Response) => {
     try {
-        if (!status || typeof status !== 'string') {
-            throw new Error('Valid status is required');
+        const reporterId = parseInt(req.params.reporterId, 10);
+        if (isNaN(reporterId)) {
+            return res.status(400).json({ message: 'Invalid reporter ID' });
         }
-        return await BugRepository.getBugsByStatus(status);
-    } catch (error) {
-        console.error('Error in getBugsByStatus service:', error);
-        throw error;
+
+        const bugs: Bug[] = await BugRepository.getBugsByReporter(reporterId);
+        return res.status(200).json(bugs);
+    } catch (error: any) {
+        console.error('Error fetching bugs by reporter:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Creates a new bug in the database
- *
- * This is the main entry point for bug creation. It validates all input data,
- * applies business rules and defaults, then persists the bug to the database.
- * The created bug object (including auto-generated ID and timestamps) is returned.
- *
- * @param bugData - Raw bug data from the request (title, description, etc.)
- * @returns Promise resolving to the created Bug object with all fields populated
- * @throws Error if validation fails or database operation fails
- */
-export const createBug = async (bugData: any): Promise<Bug> => {
+// Get bugs by status
+export const getBugsByStatus = async (req: Request, res: Response) => {
     try {
-        const validatedData = validateCreateBugData(bugData);
-        return await BugRepository.createBug(validatedData);
-    } catch (error) {
-        console.error('Error in createBug service:', error);
-        throw error;
+        const { status } = req.params;
+        if (!status) {
+            return res.status(400).json({ message: 'Status parameter is required' });
+        }
+
+        const bugs: Bug[] = await BugRepository.getBugsByStatus(status);
+        return res.status(200).json(bugs);
+    } catch (error: any) {
+        console.error('Error fetching bugs by status:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Updates an existing bug with new data
- *
- * Allows partial updates - only provided fields are modified.
- * Validates the bug ID and update data before proceeding.
- * Returns the updated bug object or null if the bug doesn't exist.
- *
- * @param bugId - The unique identifier of the bug to update
- * @param bugData - Raw update data (only provided fields will be updated)
- * @returns Promise resolving to updated Bug object or null if not found
- * @throws Error if bugId is invalid, validation fails, or database operation fails
- */
-export const updateBug = async (bugId: number, bugData: any): Promise<Bug | null> => {
+// Create new bug
+export const createBug = async (req: Request, res: Response) => {
+    console.log("Bug received", req.body);
+    if (!req.body) {
+        console.log("Bug creation requires body");
+        return res.status(400).json({ message: "Please provide bug data" });
+    }
+
     try {
-        if (!bugId || typeof bugId !== 'number') {
-            throw new Error('Valid bug ID is required');
+        const newBug = await validateAndParseBugData(req.body);
+        console.log("Bug parsed", newBug);
+
+        const createdBug = await BugRepository.createBug(newBug);
+
+        res.status(201).json({
+            message: "Bug created successfully",
+            bug: createdBug
+        });
+    } catch (error: any) {
+        console.error('Error creating bug:', error);
+        if (error.message.includes('Missing required fields') ||
+            error.message.includes('Invalid field types') ||
+            error.message.includes('Invalid') ||
+            error.message.includes('cannot be empty')) {
+            return res.status(400).json({
+                message: "Validation failed",
+                error: error.message
+            });
         }
-        const validatedData = validateUpdateBugData(bugData);
-        return await BugRepository.updateBug(bugId, validatedData);
-    } catch (error) {
-        console.error('Error in updateBug service:', error);
-        throw error;
+        res.status(500).json({
+            message: "Failed to create bug",
+            error: error.message
+        });
     }
 };
 
-/**
- * Deletes a bug from the database
- *
- * Permanently removes a bug and all its associated data.
- * Note: Comments are automatically deleted due to CASCADE constraints.
- * Returns boolean indicating success/failure of the operation.
- *
- * @param bugId - The unique identifier of the bug to delete
- * @returns Promise resolving to true if deleted, false if not found
- * @throws Error if bugId is invalid or database operation fails
- */
-export const deleteBug = async (bugId: number): Promise<boolean> => {
+// Update bug
+export const updateBug = async (req: Request, res: Response) => {
     try {
-        if (!bugId || typeof bugId !== 'number') {
-            throw new Error('Valid bug ID is required');
+        const bugId = parseInt(req.params.id, 10);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: 'Invalid bug ID' });
         }
-        return await BugRepository.deleteBug(bugId);
-    } catch (error) {
-        console.error('Error in deleteBug service:', error);
-        throw error;
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({ message: "No update data provided" });
+        }
+
+        const updateData = validateAndParseUpdateBugData(req.body);
+
+        const updatedBug = await BugRepository.updateBug(bugId, updateData);
+        if (!updatedBug) {
+            return res.status(404).json({ message: "Bug not found" });
+        }
+
+        res.json({
+            message: "Bug updated successfully",
+            bug: updatedBug
+        });
+    } catch (error: any) {
+        console.error('Error updating bug:', error);
+        if (error.message.includes('Invalid') ||
+            error.message.includes('No fields to update')) {
+            return res.status(400).json({
+                message: "Validation failed",
+                error: error.message
+            });
+        }
+        res.status(500).json({
+            message: "Failed to update bug",
+            error: error.message
+        });
+    }
+};
+
+// Delete bug
+export const deleteBug = async (req: Request, res: Response) => {
+    try {
+        const bugId = parseInt(req.params.id, 10);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: 'Invalid bug ID' });
+        }
+
+        const deleted = await BugRepository.deleteBug(bugId);
+        if (!deleted) {
+            return res.status(404).json({ message: "Bug not found" });
+        }
+
+        res.json({ message: "Bug deleted successfully" });
+    } catch (error: any) {
+        console.error('Error deleting bug:', error);
+        res.status(500).json({
+            message: "Failed to delete bug",
+            error: error.message
+        });
     }
 };
