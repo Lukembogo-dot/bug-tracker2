@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import { handleControllerError } from '../utils/errorHandler';
 
 // Note: Service functions will be implemented later
-// For now, controllers are set up with proper error handling
+// For now, controllers are set up with proper error handling and authorization
 
-// Get all projects
+// Get all projects (requires authentication)
 export const getAllProjectsController = async (req: Request, res: Response) => {
     try {
         // TODO: Implement service call
@@ -14,7 +14,7 @@ export const getAllProjectsController = async (req: Request, res: Response) => {
     }
 };
 
-// Get project by ID
+// Get project by ID (requires authentication)
 export const getProjectByIdController = async (req: Request, res: Response) => {
     try {
         // TODO: Implement service call
@@ -24,7 +24,7 @@ export const getProjectByIdController = async (req: Request, res: Response) => {
     }
 };
 
-// Get projects by creator
+// Get projects by creator (requires authentication)
 export const getProjectsByCreatorController = async (req: Request, res: Response) => {
     try {
         // TODO: Implement service call
@@ -34,7 +34,7 @@ export const getProjectsByCreatorController = async (req: Request, res: Response
     }
 };
 
-// Create a new project
+// Create a new project (Admin only)
 export const createProjectController = async (req: Request, res: Response) => {
     try {
         // TODO: Implement service call
@@ -44,7 +44,7 @@ export const createProjectController = async (req: Request, res: Response) => {
     }
 };
 
-// Update project
+// Update project (requires authentication)
 export const updateProjectController = async (req: Request, res: Response) => {
     try {
         // TODO: Implement service call
@@ -54,7 +54,7 @@ export const updateProjectController = async (req: Request, res: Response) => {
     }
 };
 
-// Delete project
+// Delete project (Admin only)
 export const deleteProjectController = async (req: Request, res: Response) => {
     try {
         // TODO: Implement service call
