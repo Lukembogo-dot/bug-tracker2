@@ -1,250 +1,236 @@
-/**
- * Comment Services Module
- *
- * This module handles all business logic related to bug comments.
- * Comments provide discussion threads for bugs, allowing team members
- * to collaborate on issue resolution. The service layer ensures:
- * - Comments are properly associated with bugs and users
- * - Comment text is validated and sanitized
- * - Bulk operations for comment management
- */
+import { CommentRepository } from "../repositories/comments.repositories";
+import { BugRepository } from "../repositories/bugs.repositories";
+import { UserRepository } from "../repositories/user.repositories";
+import { Comment, CreateComment, UpdateComment } from "../Types/comments.types";
+import { Response } from 'express';
+import { Request } from 'express';
 
-import { CommentRepository } from '../repositories/comments.repositories';
-import { Comment, CreateComment, UpdateComment } from '../Types/comments.types';
+const validateAndParseCommentData = async (body: any): Promise<CreateComment> => {
+    const { BugID, UserID, CommentText } = body ?? {};
 
-/**
- * Validates and sanitizes data for creating a new comment
- *
- * Business Rules:
- * - BugID is required and must reference an existing bug
- * - UserID is required and must reference an existing user
- * - CommentText is required and cannot be empty after trimming
- *
- * @param data - Raw input data from the request body
- * @returns Validated and sanitized CreateComment object
- * @throws Error if validation fails
- */
-const validateCreateCommentData = (data: any): CreateComment => {
-    // Validate required bug ID
-    if (!data.BugID || typeof data.BugID !== 'number') {
-        throw new Error('BugID is required and must be a number');
+    if (!BugID || !UserID || !CommentText) {
+        throw new Error("Missing required fields: BugID, UserID, and CommentText are required");
     }
 
-    // Validate required user ID
-    if (!data.UserID || typeof data.UserID !== 'number') {
-        throw new Error('UserID is required and must be a number');
+    if (typeof BugID !== 'number' || typeof UserID !== 'number' || typeof CommentText !== 'string') {
+        throw new Error("Invalid field types: BugID and UserID must be numbers, CommentText must be string");
     }
 
-    // Validate required comment text
-    if (!data.CommentText || typeof data.CommentText !== 'string') {
-        throw new Error('CommentText is required and must be a string');
+    const commentText = CommentText.trim();
+    if (commentText.length === 0) {
+        throw new Error("CommentText cannot be empty");
+    }
+
+    // Validate bug exists
+    const bug = await BugRepository.getBugById(BugID);
+    if (!bug) {
+        throw new Error("Invalid BugID: Bug does not exist");
+    }
+
+    // Validate user exists
+    const user = await UserRepository.getUserById(UserID);
+    if (!user) {
+        throw new Error("Invalid UserID: User does not exist");
     }
 
     return {
-        BugID: data.BugID,
-        UserID: data.UserID,
-        CommentText: data.CommentText.trim(),
+        BugID,
+        UserID,
+        CommentText: commentText
     };
 };
 
-/**
- * Validates and sanitizes data for updating an existing comment
- *
- * Business Rules:
- * - CommentText is required for updates (comments cannot be blank)
- * - Only the comment text can be updated (other fields are immutable)
- *
- * @param data - Raw input data from the request body
- * @returns Validated and sanitized UpdateComment object
- * @throws Error if validation fails
- */
-const validateUpdateCommentData = (data: any): UpdateComment => {
-    if (data.CommentText !== undefined) {
-        if (typeof data.CommentText !== 'string') {
-            throw new Error('CommentText must be a string');
+const validateAndParseUpdateCommentData = (body: any): UpdateComment => {
+    const { CommentText } = body ?? {};
+
+    if (CommentText !== undefined && (typeof CommentText !== 'string' || CommentText.trim().length === 0)) {
+        throw new Error("Invalid CommentText: Must be non-empty string");
+    }
+
+    return {
+        CommentText: CommentText ? CommentText.trim() : undefined
+    };
+};
+
+// Get all comments
+export const getAllComments = async (req: Request, res: Response) => {
+    try {
+        const comments: Comment[] = await CommentRepository.getAllComments();
+        return res.status(200).json(comments);
+    } catch (error: any) {
+        console.error('Error fetching comments:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+};
+
+// Get comment by ID
+export const getCommentById = async (req: Request, res: Response) => {
+    try {
+        const commentId = parseInt(req.params.id, 10);
+        if (isNaN(commentId)) {
+            return res.status(400).json({ message: 'Invalid comment ID' });
         }
-        return {
-            CommentText: data.CommentText.trim(),
-        };
-    }
 
-    throw new Error('CommentText is required for update');
-};
-
-/**
- * Retrieves all comments from the database
- *
- * Returns a complete list of all comments across all bugs, ordered by creation date.
- * This is typically used for administrative purposes or system-wide comment analysis.
- *
- * @returns Promise resolving to array of all Comment objects
- * @throws Error if database operation fails
- */
-export const getAllComments = async (): Promise<Comment[]> => {
-    try {
-        return await CommentRepository.getAllComments();
-    } catch (error) {
-        console.error('Error in getAllComments service:', error);
-        throw error;
-    }
-};
-
-/**
- * Retrieves a specific comment by its ID
- *
- * Used when displaying individual comments or when a user wants to view
- * or edit a specific comment. Returns null if the comment doesn't exist.
- *
- * @param commentId - The unique identifier of the comment
- * @returns Promise resolving to Comment object or null if not found
- * @throws Error if commentId is invalid or database operation fails
- */
-export const getCommentById = async (commentId: number): Promise<Comment | null> => {
-    try {
-        if (!commentId || typeof commentId !== 'number') {
-            throw new Error('Valid comment ID is required');
+        const comment: Comment | null = await CommentRepository.getCommentById(commentId);
+        if (!comment) {
+            return res.status(404).json({ message: 'Comment not found' });
         }
-        return await CommentRepository.getCommentById(commentId);
-    } catch (error) {
-        console.error('Error in getCommentById service:', error);
-        throw error;
+
+        return res.status(200).json(comment);
+    } catch (error: any) {
+        console.error('Error fetching comment by ID:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Retrieves all comments associated with a specific bug
- *
- * This is the primary method for displaying comment threads on bug detail pages.
- * Comments are ordered chronologically (oldest first) to show conversation flow.
- * Essential for bug discussion and collaboration features.
- *
- * @param bugId - The unique identifier of the bug
- * @returns Promise resolving to array of Comment objects for the bug
- * @throws Error if bugId is invalid or database operation fails
- */
-export const getCommentsByBug = async (bugId: number): Promise<Comment[]> => {
+// Get comments by bug
+export const getCommentsByBug = async (req: Request, res: Response) => {
     try {
-        if (!bugId || typeof bugId !== 'number') {
-            throw new Error('Valid bug ID is required');
+        const bugId = parseInt(req.params.bugId, 10);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: 'Invalid bug ID' });
         }
-        return await CommentRepository.getCommentsByBug(bugId);
-    } catch (error) {
-        console.error('Error in getCommentsByBug service:', error);
-        throw error;
+
+        const comments: Comment[] = await CommentRepository.getCommentsByBug(bugId);
+        return res.status(200).json(comments);
+    } catch (error: any) {
+        console.error('Error fetching comments by bug:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Retrieves all comments made by a specific user
- *
- * Useful for user profile pages, activity feeds, or analyzing user engagement.
- * Shows the commenting history and contributions of individual team members.
- *
- * @param userId - The unique identifier of the user
- * @returns Promise resolving to array of Comment objects by the user
- * @throws Error if userId is invalid or database operation fails
- */
-export const getCommentsByUser = async (userId: number): Promise<Comment[]> => {
+// Get comments by user
+export const getCommentsByUser = async (req: Request, res: Response) => {
     try {
-        if (!userId || typeof userId !== 'number') {
-            throw new Error('Valid user ID is required');
+        const userId = parseInt(req.params.userId, 10);
+        if (isNaN(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
         }
-        return await CommentRepository.getCommentsByUser(userId);
-    } catch (error) {
-        console.error('Error in getCommentsByUser service:', error);
-        throw error;
+
+        const comments: Comment[] = await CommentRepository.getCommentsByUser(userId);
+        return res.status(200).json(comments);
+    } catch (error: any) {
+        console.error('Error fetching comments by user:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
 
-/**
- * Creates a new comment on a bug
- *
- * This is the main entry point for adding comments to bug discussions.
- * Validates that the bug and user exist, ensures comment text is valid,
- * then creates the comment record with automatic timestamp.
- *
- * @param commentData - Raw comment data (bugId, userId, commentText)
- * @returns Promise resolving to the created Comment object with all fields
- * @throws Error if validation fails or database operation fails
- */
-export const createComment = async (commentData: any): Promise<Comment> => {
-    try {
-        const validatedData = validateCreateCommentData(commentData);
-        return await CommentRepository.createComment(validatedData);
-    } catch (error) {
-        console.error('Error in createComment service:', error);
-        throw error;
+// Create new comment
+export const createComment = async (req: Request, res: Response) => {
+    console.log("Comment received", req.body);
+    if (!req.body) {
+        console.log("Comment creation requires body");
+        return res.status(400).json({ message: "Please provide comment data" });
     }
-};
 
-/**
- * Updates the text of an existing comment
- *
- * Allows users to edit their comments (typically with time restrictions).
- * Only the comment text can be modified - bug and user associations are immutable.
- * Returns the updated comment or null if the comment doesn't exist.
- *
- * @param commentId - The unique identifier of the comment to update
- * @param commentData - Update data containing new comment text
- * @returns Promise resolving to updated Comment object or null if not found
- * @throws Error if commentId is invalid, validation fails, or database operation fails
- */
-export const updateComment = async (commentId: number, commentData: any): Promise<Comment | null> => {
     try {
-        if (!commentId || typeof commentId !== 'number') {
-            throw new Error('Valid comment ID is required');
+        const newComment = await validateAndParseCommentData(req.body);
+        console.log("Comment parsed", newComment);
+
+        const createdComment = await CommentRepository.createComment(newComment);
+
+        res.status(201).json({
+            message: "Comment created successfully",
+            comment: createdComment
+        });
+    } catch (error: any) {
+        console.error('Error creating comment:', error);
+        if (error.message.includes('Missing required fields') ||
+            error.message.includes('Invalid field types') ||
+            error.message.includes('Invalid') ||
+            error.message.includes('cannot be empty')) {
+            return res.status(400).json({
+                message: "Validation failed",
+                error: error.message
+            });
         }
-        const validatedData = validateUpdateCommentData(commentData);
-        return await CommentRepository.updateComment(commentId, validatedData);
-    } catch (error) {
-        console.error('Error in updateComment service:', error);
-        throw error;
+        res.status(500).json({
+            message: "Failed to create comment",
+            error: error.message
+        });
     }
 };
 
-/**
- * Deletes a specific comment
- *
- * Permanently removes a comment from the database. This operation should
- * typically be restricted to comment authors or administrators.
- * Returns boolean indicating whether the deletion was successful.
- *
- * @param commentId - The unique identifier of the comment to delete
- * @returns Promise resolving to true if deleted, false if not found
- * @throws Error if commentId is invalid or database operation fails
- */
-export const deleteComment = async (commentId: number): Promise<boolean> => {
+// Update comment
+export const updateComment = async (req: Request, res: Response) => {
     try {
-        if (!commentId || typeof commentId !== 'number') {
-            throw new Error('Valid comment ID is required');
+        const commentId = parseInt(req.params.id, 10);
+        if (isNaN(commentId)) {
+            return res.status(400).json({ message: 'Invalid comment ID' });
         }
-        return await CommentRepository.deleteComment(commentId);
-    } catch (error) {
-        console.error('Error in deleteComment service:', error);
-        throw error;
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({ message: "No update data provided" });
+        }
+
+        const updateData = validateAndParseUpdateCommentData(req.body);
+
+        const updatedComment = await CommentRepository.updateComment(commentId, updateData);
+        if (!updatedComment) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+
+        res.json({
+            message: "Comment updated successfully",
+            comment: updatedComment
+        });
+    } catch (error: any) {
+        console.error('Error updating comment:', error);
+        if (error.message.includes('Invalid') ||
+            error.message.includes('Comment text is required')) {
+            return res.status(400).json({
+                message: "Validation failed",
+                error: error.message
+            });
+        }
+        res.status(500).json({
+            message: "Failed to update comment",
+            error: error.message
+        });
     }
 };
 
-/**
- * Deletes all comments associated with a specific bug
- *
- * This is typically called when deleting a bug, as comments should not
- * exist without their parent bug. The CASCADE delete in the database
- * schema handles this automatically, but this method provides programmatic
- * control and returns the number of comments deleted.
- *
- * @param bugId - The unique identifier of the bug whose comments to delete
- * @returns Promise resolving to number of comments deleted
- * @throws Error if bugId is invalid or database operation fails
- */
-export const deleteCommentsByBug = async (bugId: number): Promise<number> => {
+// Delete comment
+export const deleteComment = async (req: Request, res: Response) => {
     try {
-        if (!bugId || typeof bugId !== 'number') {
-            throw new Error('Valid bug ID is required');
+        const commentId = parseInt(req.params.id, 10);
+        if (isNaN(commentId)) {
+            return res.status(400).json({ message: 'Invalid comment ID' });
         }
-        return await CommentRepository.deleteCommentsByBug(bugId);
-    } catch (error) {
-        console.error('Error in deleteCommentsByBug service:', error);
-        throw error;
+
+        const deleted = await CommentRepository.deleteComment(commentId);
+        if (!deleted) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+
+        res.json({ message: "Comment deleted successfully" });
+    } catch (error: any) {
+        console.error('Error deleting comment:', error);
+        res.status(500).json({
+            message: "Failed to delete comment",
+            error: error.message
+        });
+    }
+};
+
+// Delete all comments for a bug
+export const deleteCommentsByBug = async (req: Request, res: Response) => {
+    try {
+        const bugId = parseInt(req.params.bugId, 10);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: 'Invalid bug ID' });
+        }
+
+        const deletedCount = await CommentRepository.deleteCommentsByBug(bugId);
+
+        res.json({
+            message: `Deleted ${deletedCount} comments for bug ${bugId}`
+        });
+    } catch (error: any) {
+        console.error('Error deleting comments by bug:', error);
+        res.status(500).json({
+            message: "Failed to delete comments",
+            error: error.message
+        });
     }
 };
