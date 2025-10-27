@@ -1,74 +1,54 @@
 /**
  * DATABASE CONFIGURATION
  *
- * Handles SQL Server connection setup and management.
+ * Handles PostgreSQL connection setup and management.
  * Uses connection pooling for efficient database access.
  * Provides centralized database configuration and error handling.
  */
 
-import sql from "mssql";
+import { Pool } from "pg";
 import dotenv from "dotenv";
 import assert from "assert";
 
 // Load environment variables from .env file
 dotenv.config();
 
-// Validate that all required environment variables are present
+// Validate that the required environment variable is present
 // This prevents runtime errors from missing database configuration
-assert(process.env.SQL_SERVER, "❌ Missing environment variable: SQL_SERVER");
-assert(process.env.SQL_DB, "❌ Missing environment variable: SQL_DB");
-assert(process.env.SQL_USER, "❌ Missing environment variable: SQL_USER");
-assert(process.env.SQL_PWD, "❌ Missing environment variable: SQL_PWD");
-assert(process.env.SQL_PORT, "❌ Missing environment variable: SQL_PORT");
+assert(process.env.DATABASE_URL, "❌ Missing environment variable: DATABASE_URL");
 
 /**
- * SQL Server connection configuration
- * Defines all parameters needed to connect to the database
+ * PostgreSQL connection pool configuration
+ * Uses DATABASE_URL for connection
  */
-const config: sql.config = {
-  user: process.env.SQL_USER,
-  password: process.env.SQL_PWD,
-  server: process.env.SQL_SERVER as string,
-  database: process.env.SQL_DB,
-  port: Number(process.env.SQL_PORT) || 1433,
-  options: {
-    encrypt: false, // Set to true for Azure SQL Database
-    trustServerCertificate: true // Required for local SQL Server instances
-  },
-  pool: {
-    max: 10, // Maximum number of connections in pool
-    min: 0,  // Minimum number of connections in pool
-    idleTimeoutMillis: 30000 // Close idle connections after 30 seconds
-  }
-};
-
-// Global connection pool instance - reused across the application
-let pool: sql.ConnectionPool | null = null;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 10, // Maximum number of connections in pool
+  min: 0,  // Minimum number of connections in pool
+  idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+});
 
 // Connection retry configuration
 const MAX_RETRIES = 10;
 const RETRY_DELAY_MS = 5000;
 
 /**
- * Get or create SQL Server connection pool
+ * Get PostgreSQL connection pool
  *
  * Implements connection pooling for efficient database access.
  * Includes automatic retry logic for connection failures.
- * Returns existing pool if already connected.
  *
- * @returns Promise<sql.ConnectionPool> - Database connection pool
+ * @returns Promise<Pool> - Database connection pool
  * @throws Error if connection fails after all retries
  */
-export const getPool = async (): Promise<sql.ConnectionPool> => {
-  // Return existing pool if already connected
-  if (pool) return pool;
-
-  // Attempt connection with retry logic
+export const getPool = async (): Promise<Pool> => {
+  // Test the connection with retry logic
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      console.log(`\x1b[36m[DB]\x1b[0m Attempt ${attempt}/${MAX_RETRIES} - connecting to ${process.env.SQL_SERVER}...`);
-      pool = await sql.connect(config);
-      console.log("\x1b[32m[DB]\x1b[0m ✅ Connected successfully to SQL Server");
+      const client = await pool.connect();
+      console.log("\x1b[32m[DB]\x1b[0m ✅ Connected successfully to PostgreSQL");
+      client.release();
       return pool;
     } catch (error: any) {
       const code = error.code || "UNKNOWN";
@@ -79,19 +59,19 @@ export const getPool = async (): Promise<sql.ConnectionPool> => {
       // Provide helpful error messages for common connection issues
       switch (code) {
         case "ECONNREFUSED":
-          console.error("💡 Check if SQL Server is running and listening on port 1433.");
+          console.error("💡 Check if PostgreSQL is running and accessible.");
           break;
-        case "ESOCKET":
-          console.error("💡 Enable TCP/IP in SQL Server Configuration Manager (Protocols for SQLEXPRESS).");
+        case "ENOTFOUND":
+          console.error("💡 Database host not found — verify DATABASE_URL in your .env file.");
           break;
-        case "ELOGIN":
-          console.error("💡 Invalid login — verify SQL_USER and SQL_PWD in your .env file.");
+        case "28P01":
+          console.error("💡 Authentication failed — verify credentials in DATABASE_URL.");
           break;
         case "ETIMEOUT":
           console.error("💡 Timeout — check network/firewall settings or server availability.");
           break;
         default:
-          console.error("💡 Unknown error — inspect network or SQL configuration.");
+          console.error("💡 Unknown error — inspect DATABASE_URL or network configuration.");
       }
 
       // Retry connection if attempts remain
@@ -99,13 +79,13 @@ export const getPool = async (): Promise<sql.ConnectionPool> => {
         console.log(`\x1b[33m[DB]\x1b[0m ⏳ Retrying in ${RETRY_DELAY_MS / 1000}s...`);
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
       } else {
-        console.error("\x1b[31m[DB]\x1b[0m 🚨 Max retries reached. Unable to connect to SQL Server.");
+        console.error("\x1b[31m[DB]\x1b[0m 🚨 Max retries reached. Unable to connect to PostgreSQL.");
         throw error;
       }
     }
   }
 
-  throw new Error("SQL connection failed after multiple retries.");
+  throw new Error("PostgreSQL connection failed after multiple retries.");
 };
 
 /**
@@ -115,13 +95,10 @@ export const getPool = async (): Promise<sql.ConnectionPool> => {
  * Handles errors during pool closure.
  */
 export const closePool = async (): Promise<void> => {
-  if (pool) {
-    try {
-      await pool.close();
-      console.log("\x1b[33m[DB]\x1b[0m 🔒 SQL connection pool closed gracefully.");
-      pool = null;
-    } catch (err) {
-      console.error("\x1b[31m[DB]\x1b[0m ⚠️ Error closing SQL pool:", err);
-    }
+  try {
+    await pool.end();
+    console.log("\x1b[33m[DB]\x1b[0m 🔒 PostgreSQL connection pool closed gracefully.");
+  } catch (err) {
+    console.error("\x1b[31m[DB]\x1b[0m ⚠️ Error closing PostgreSQL pool:", err);
   }
 };
