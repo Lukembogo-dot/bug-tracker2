@@ -53,184 +53,127 @@ const validateAndParseUpdateCommentData = (body: any): UpdateComment => {
 };
 
 // Get all comments
-export const getAllComments = async (req: Request, res: Response) => {
+export const getAllComments = async (): Promise<Comment[]> => {
     try {
         const comments: Comment[] = await CommentRepository.getAllComments();
-        return res.status(200).json(comments);
+        return comments;
     } catch (error: any) {
         console.error('Error fetching comments:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        throw error;
     }
 };
 
 // Get comment by ID
-export const getCommentById = async (req: Request, res: Response) => {
+export const getCommentById = async (commentId: number): Promise<Comment | null> => {
     try {
-        const commentId = parseInt(req.params.id, 10);
         if (isNaN(commentId)) {
-            return res.status(400).json({ message: 'Invalid comment ID' });
+            throw new Error('Invalid comment ID');
         }
 
         const comment: Comment | null = await CommentRepository.getCommentById(commentId);
-        if (!comment) {
-            return res.status(404).json({ message: 'Comment not found' });
-        }
-
-        return res.status(200).json(comment);
+        return comment;
     } catch (error: any) {
         console.error('Error fetching comment by ID:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        throw error;
     }
 };
 
 // Get comments by bug
-export const getCommentsByBug = async (req: Request, res: Response) => {
+export const getCommentsByBug = async (bugId: number): Promise<Comment[]> => {
     try {
-        const bugId = parseInt(req.params.bugId, 10);
         if (isNaN(bugId)) {
-            return res.status(400).json({ message: 'Invalid bug ID' });
+            throw new Error('Invalid bug ID');
         }
 
         const comments: Comment[] = await CommentRepository.getCommentsByBug(bugId);
-        return res.status(200).json(comments);
+        return comments;
     } catch (error: any) {
         console.error('Error fetching comments by bug:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        throw error;
     }
 };
 
 // Get comments by user
-export const getCommentsByUser = async (req: Request, res: Response) => {
+export const getCommentsByUser = async (userId: number): Promise<Comment[]> => {
     try {
-        const userId = parseInt(req.params.userId, 10);
         if (isNaN(userId)) {
-            return res.status(400).json({ message: 'Invalid user ID' });
+            throw new Error('Invalid user ID');
         }
 
         const comments: Comment[] = await CommentRepository.getCommentsByUser(userId);
-        return res.status(200).json(comments);
+        return comments;
     } catch (error: any) {
         console.error('Error fetching comments by user:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        throw error;
     }
 };
 
 // Create new comment
-export const createComment = async (req: Request, res: Response) => {
-    console.log("Comment received", req.body);
-    if (!req.body) {
-        console.log("Comment creation requires body");
-        return res.status(400).json({ message: "Please provide comment data" });
+export const createComment = async (commentData: any): Promise<Comment> => {
+    console.log("Comment received", commentData);
+    if (!commentData) {
+        throw new Error("Please provide comment data");
     }
 
     try {
-        const newComment = await validateAndParseCommentData(req.body);
+        const newComment = await validateAndParseCommentData(commentData);
         console.log("Comment parsed", newComment);
 
         const createdComment = await CommentRepository.createComment(newComment);
-
-        res.status(201).json({
-            message: "Comment created successfully",
-            comment: createdComment
-        });
+        return createdComment;
     } catch (error: any) {
         console.error('Error creating comment:', error);
-        if (error.message.includes('Missing required fields') ||
-            error.message.includes('Invalid field types') ||
-            error.message.includes('Invalid') ||
-            error.message.includes('cannot be empty')) {
-            return res.status(400).json({
-                message: "Validation failed",
-                error: error.message
-            });
-        }
-        res.status(500).json({
-            message: "Failed to create comment",
-            error: error.message
-        });
+        throw error;
     }
 };
 
 // Update comment
-export const updateComment = async (req: Request, res: Response) => {
+export const updateComment = async (commentId: number, commentData: any): Promise<Comment | null> => {
     try {
-        const commentId = parseInt(req.params.id, 10);
         if (isNaN(commentId)) {
-            return res.status(400).json({ message: 'Invalid comment ID' });
+            throw new Error('Invalid comment ID');
         }
 
-        if (!req.body || Object.keys(req.body).length === 0) {
-            return res.status(400).json({ message: "No update data provided" });
+        if (!commentData || Object.keys(commentData).length === 0) {
+            throw new Error("No update data provided");
         }
 
-        const updateData = validateAndParseUpdateCommentData(req.body);
+        const updateData = validateAndParseUpdateCommentData(commentData);
 
         const updatedComment = await CommentRepository.updateComment(commentId, updateData);
-        if (!updatedComment) {
-            return res.status(404).json({ message: "Comment not found" });
-        }
-
-        res.json({
-            message: "Comment updated successfully",
-            comment: updatedComment
-        });
+        return updatedComment;
     } catch (error: any) {
         console.error('Error updating comment:', error);
-        if (error.message.includes('Invalid') ||
-            error.message.includes('Comment text is required')) {
-            return res.status(400).json({
-                message: "Validation failed",
-                error: error.message
-            });
-        }
-        res.status(500).json({
-            message: "Failed to update comment",
-            error: error.message
-        });
+        throw error;
     }
 };
 
 // Delete comment
-export const deleteComment = async (req: Request, res: Response) => {
+export const deleteComment = async (commentId: number): Promise<boolean> => {
     try {
-        const commentId = parseInt(req.params.id, 10);
         if (isNaN(commentId)) {
-            return res.status(400).json({ message: 'Invalid comment ID' });
+            throw new Error('Invalid comment ID');
         }
 
         const deleted = await CommentRepository.deleteComment(commentId);
-        if (!deleted) {
-            return res.status(404).json({ message: "Comment not found" });
-        }
-
-        res.json({ message: "Comment deleted successfully" });
+        return deleted;
     } catch (error: any) {
         console.error('Error deleting comment:', error);
-        res.status(500).json({
-            message: "Failed to delete comment",
-            error: error.message
-        });
+        throw error;
     }
 };
 
 // Delete all comments for a bug
-export const deleteCommentsByBug = async (req: Request, res: Response) => {
+export const deleteCommentsByBug = async (bugId: number): Promise<number> => {
     try {
-        const bugId = parseInt(req.params.bugId, 10);
         if (isNaN(bugId)) {
-            return res.status(400).json({ message: 'Invalid bug ID' });
+            throw new Error('Invalid bug ID');
         }
 
         const deletedCount = await CommentRepository.deleteCommentsByBug(bugId);
-
-        res.json({
-            message: `Deleted ${deletedCount} comments for bug ${bugId}`
-        });
+        return deletedCount;
     } catch (error: any) {
         console.error('Error deleting comments by bug:', error);
-        res.status(500).json({
-            message: "Failed to delete comments",
-            error: error.message
-        });
+        throw error;
     }
 };
