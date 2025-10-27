@@ -11,7 +11,7 @@ const sqlConfig = {
   database: process.env.SQL_DB,
 };
 
-app.listen(3000, async () => {
+app.listen(process.env.SQL_PORT, async () => {
   console.log("Starting server...");
   try {
     const dbConnected = await getPool();

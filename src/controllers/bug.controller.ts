@@ -37,7 +37,7 @@ import {
  */
 export const getAllBugsController = async (req: Request, res: Response) => {
     try {
-        const bugs = await getAllBugs();
+        const bugs = await getAllBugsC();
         res.json({ bugs });
     } catch (error: any) {
         handleControllerError(error, res);
