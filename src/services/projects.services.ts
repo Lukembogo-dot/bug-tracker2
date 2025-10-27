@@ -1,8 +1,6 @@
 import { ProjectRepository } from "../repositories/projects.repositories";
 import { UserRepository } from "../repositories/user.repositories";
 import { Project, CreateProject, UpdateProject } from "../Types/projects.types";
-import { Response } from 'express';
-import { Request } from 'express';
 
 const validateAndParseProjectData = async (body: any): Promise<CreateProject> => {
     const { ProjectName, Description, CreatedBy } = body ?? {};
@@ -47,146 +45,97 @@ const validateAndParseUpdateProjectData = (body: any): UpdateProject => {
 };
 
 // Get all projects
-export const getAllProjects = async (req: Request, res: Response) => {
+export const getAllProjects = async (): Promise<Project[]> => {
     try {
         const projects: Project[] = await ProjectRepository.getAllProjects();
-        return res.status(200).json(projects);
+        return projects;
     } catch (error: any) {
         console.error('Error fetching projects:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        throw error;
     }
 };
 
 // Get project by ID
-export const getProjectById = async (req: Request, res: Response) => {
+export const getProjectById = async (projectId: number): Promise<Project | null> => {
     try {
-        const projectId = parseInt(req.params.id, 10);
         if (isNaN(projectId)) {
-            return res.status(400).json({ message: 'Invalid project ID' });
+            throw new Error('Invalid project ID');
         }
 
         const project: Project | null = await ProjectRepository.getProjectById(projectId);
-        if (!project) {
-            return res.status(404).json({ message: 'Project not found' });
-        }
-
-        return res.status(200).json(project);
+        return project;
     } catch (error: any) {
         console.error('Error fetching project by ID:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        throw error;
     }
 };
 
 // Get projects by creator
-export const getProjectsByCreator = async (req: Request, res: Response) => {
+export const getProjectsByCreator = async (creatorId: number): Promise<Project[]> => {
     try {
-        const creatorId = parseInt(req.params.creatorId, 10);
         if (isNaN(creatorId)) {
-            return res.status(400).json({ message: 'Invalid creator ID' });
+            throw new Error('Invalid creator ID');
         }
 
         const projects: Project[] = await ProjectRepository.getProjectsByCreator(creatorId);
-        return res.status(200).json(projects);
+        return projects;
     } catch (error: any) {
         console.error('Error fetching projects by creator:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        throw error;
     }
 };
 
 // Create new project
-export const createProject = async (req: Request, res: Response) => {
-    console.log("Project received", req.body);
-    if (!req.body) {
-        console.log("Project creation requires body");
-        return res.status(400).json({ message: "Please provide project data" });
+export const createProject = async (projectData: any): Promise<Project> => {
+    console.log("Project received", projectData);
+    if (!projectData) {
+        throw new Error("Please provide project data");
     }
 
     try {
-        const newProject = await validateAndParseProjectData(req.body);
+        const newProject = await validateAndParseProjectData(projectData);
         console.log("Project parsed", newProject);
 
         const createdProject = await ProjectRepository.createProject(newProject);
-
-        res.status(201).json({
-            message: "Project created successfully",
-            project: createdProject
-        });
+        return createdProject;
     } catch (error: any) {
         console.error('Error creating project:', error);
-        if (error.message.includes('Missing required fields') ||
-            error.message.includes('Invalid field types') ||
-            error.message.includes('Invalid') ||
-            error.message.includes('cannot be empty')) {
-            return res.status(400).json({
-                message: "Validation failed",
-                error: error.message
-            });
-        }
-        res.status(500).json({
-            message: "Failed to create project",
-            error: error.message
-        });
+        throw error;
     }
 };
 
 // Update project
-export const updateProject = async (req: Request, res: Response) => {
+export const updateProject = async (projectId: number, projectData: any): Promise<Project | null> => {
     try {
-        const projectId = parseInt(req.params.id, 10);
         if (isNaN(projectId)) {
-            return res.status(400).json({ message: 'Invalid project ID' });
+            throw new Error('Invalid project ID');
         }
 
-        if (!req.body || Object.keys(req.body).length === 0) {
-            return res.status(400).json({ message: "No update data provided" });
+        if (!projectData || Object.keys(projectData).length === 0) {
+            throw new Error("No update data provided");
         }
 
-        const updateData = validateAndParseUpdateProjectData(req.body);
+        const updateData = validateAndParseUpdateProjectData(projectData);
 
         const updatedProject = await ProjectRepository.updateProject(projectId, updateData);
-        if (!updatedProject) {
-            return res.status(404).json({ message: "Project not found" });
-        }
-
-        res.json({
-            message: "Project updated successfully",
-            project: updatedProject
-        });
+        return updatedProject;
     } catch (error: any) {
         console.error('Error updating project:', error);
-        if (error.message.includes('Invalid') ||
-            error.message.includes('No fields to update')) {
-            return res.status(400).json({
-                message: "Validation failed",
-                error: error.message
-            });
-        }
-        res.status(500).json({
-            message: "Failed to update project",
-            error: error.message
-        });
+        throw error;
     }
 };
 
 // Delete project
-export const deleteProject = async (req: Request, res: Response) => {
+export const deleteProject = async (projectId: number): Promise<boolean> => {
     try {
-        const projectId = parseInt(req.params.id, 10);
         if (isNaN(projectId)) {
-            return res.status(400).json({ message: 'Invalid project ID' });
+            throw new Error('Invalid project ID');
         }
 
         const deleted = await ProjectRepository.deleteProject(projectId);
-        if (!deleted) {
-            return res.status(404).json({ message: "Project not found" });
-        }
-
-        res.json({ message: "Project deleted successfully" });
+        return deleted;
     } catch (error: any) {
         console.error('Error deleting project:', error);
-        res.status(500).json({
-            message: "Failed to delete project",
-            error: error.message
-        });
+        throw error;
     }
 };
