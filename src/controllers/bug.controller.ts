@@ -187,6 +187,9 @@ export const updateBugController = async (req: Request, res: Response) => {
             bug
         });
     } catch (error: any) {
+        if (error.message === "No update data provided") {
+            return res.status(400).json({ message: error.message });
+        }
         handleControllerError(error, res);
     }
 };
@@ -210,6 +213,9 @@ export const deleteBugController = async (req: Request, res: Response) => {
         }
         res.json({ message: "Bug deleted successfully" });
     } catch (error: any) {
+        if (error.message === "Invalid bug ID") {
+            return res.status(400).json({ message: error.message });
+        }
         handleControllerError(error, res);
     }
 };
