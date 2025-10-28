@@ -27,6 +27,20 @@ commentRoutes(app);
 projectRoutes(app);
 userRoutes(app);
 
+// Root route
+app.get('/', (req, res) => {
+    res.json({
+        message: "Bug Tracker API is running",
+        version: "1.0.0",
+        endpoints: {
+            bugs: "/bugs",
+            comments: "/comments",
+            projects: "/projects",
+            users: "/users"
+        }
+    });
+});
+
 app.listen(3000, async () => {
     console.log("Starting server...");
     try {
