@@ -14,12 +14,6 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 8081;
 
-const sqlConfig = {
-  server: process.env.SQL_SERVER,
-  user: process.env.SQL_USER,
-  password: process.env.SQL_PWD,
-  database: process.env.SQL_DB,
-};
 
 // Routes
 bugRoutes(app);
