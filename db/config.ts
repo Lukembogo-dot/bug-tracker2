@@ -54,7 +54,7 @@ export const getPool = async (): Promise<Pool> => {
       const code = error.code || "UNKNOWN";
       const message = error.message || "No error message provided";
 
-      console.error(`\x1b[31m[DB]\x1b[0m ❌ Connection failed [${code}]: ${message}`);
+      console.error(`\x1b[31m[DB]\x1b[0m  Connection failed [${code}]: ${message}`);
 
       // Provide helpful error messages for common connection issues
       switch (code) {
