@@ -41,10 +41,10 @@ app.listen(3000, async () => {
         const dbConnected = await getPool();
         if(dbConnected){
             console.log(`Server is running on http://localhost:${PORT}`);
-            console.log("Database connected Successfully✅");
+            console.log("Database connected Successfully");
         }
         else{
-            console.log("Database connection error❌");
+            console.log("Database connection error");
         }
     } catch (error) {
         console.log("Error starting the server", error);
