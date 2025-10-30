@@ -1,0 +1,1 @@
+jest.mock("../../src/repositories/comments.repositorys", () =>)
