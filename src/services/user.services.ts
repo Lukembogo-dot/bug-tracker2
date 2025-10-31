@@ -107,7 +107,7 @@ export const loginUser = async (req: Request, res: Response) => {
         // Remove password hash from response
         const { PasswordHash, ...userResponse } = user;
 
-        res.json({
+        res.status(200).json({
             message: "Login successful",
             token,
             user: userResponse
