@@ -121,6 +121,125 @@ describe("User service testing", () => {
         }
       });
     });
+
+    it("should get a user's profile", async() => {
+      const mockUser={
+        UserID:1,
+        Username: "john doe",
+        Email: "johndoe@gmail.com",
+        PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
+        Role: 'admin',
+        CreatedAt: new Date("2025-10-30T14:30:00Z")
+      }
+     const mockReq = { user: { userId: mockUser.UserID } } as Request;
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+      } as unknown as Response;
+
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
+
+      await UserServices.getUserProfile(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        user: {
+          UserID: mockUser.UserID,
+          Username: mockUser.Username,
+          Email: mockUser.Email,
+          Role: mockUser.Role,
+          CreatedAt: mockUser.CreatedAt
+        }
+      });
   });
+  
+  it("should update a user's credentials", async()=>{
+    const mockUser={
+        UserID:1,
+        Username: "john doe",
+        Email: "johndoe@gmail.com",
+        PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
+        Role: 'admin',
+        CreatedAt: new Date("2025-10-30T14:30:00Z")
+      }
+      const body={
+        username:"Paul-Muyali",
+        email:"paulmuyalikhams@gmail.com"
+      }
+      const mockReq = {user:{userId: mockUser.UserID}, body: body} as Request;
+
+      const mockRes ={
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+      } as unknown as Response;
+
+      const updatedUser = {
+        ...mockUser,
+        Username: body.username,
+        Email: body.email
+      };
+
+      (UserRepository.updateUser as jest.Mock).mockResolvedValue(updatedUser);
+      (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue(null); // No conflict
+
+      await UserServices.updateUserProfile(mockReq, mockRes);
+
+      expect(UserRepository.updateUser).toHaveBeenCalledWith(mockUser.UserID, {
+        Username: body.username.trim(),
+        Email: body.email.trim().toLowerCase()
+      });
+      expect(mockRes.status).toHaveBeenCalledWith(200)
+      expect(mockRes.json).toHaveBeenCalledWith({
+       message:"Profile updated successfully",
+       user: {
+         UserID: updatedUser.UserID,
+         Username: updatedUser.Username,
+         Email: updatedUser.Email,
+         Role: updatedUser.Role,
+         CreatedAt: updatedUser.CreatedAt
+       }
+      })
+});
+    
+it("should update the user's password", async() => {
+  const mockUser={
+        UserID:1,
+        Username: "john doe",
+        Email: "johndoe@gmail.com",
+        PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
+        Role: 'admin',
+        CreatedAt: new Date("2025-10-30T14:30:00Z")
+      }
+
+  const body={
+    currentPassword: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
+    newPassword:"12345678djd"
+  }
+  const mockReq = {user:{userId: mockUser.UserID}, body} as Request
+  const mockRes = {
+    status:jest.fn().mockReturnThis(),
+    json: jest.fn()
+  } as unknown as Response;
+
+  (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
+  (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+  (UserRepository.updateUser as jest.Mock).mockResolvedValue(null);
+
+  // Mock bcrypt.hash to return a hashed password
+  (bcrypt.hash as jest.Mock).mockResolvedValue('$2b$10$mockHashedPassword');
 
 
+  await UserServices.changePassword(mockReq, mockRes)
+
+  expect(UserRepository.updateUser).toHaveBeenCalledWith(mockUser.UserID, {
+    PasswordHash: expect.any(String)
+  });
+  expect(mockRes.status).toHaveBeenCalledWith(204)
+  expect(mockRes.json).toHaveBeenCalledWith(
+    { message: "Password changed successfully" }
+  )
+
+
+});
+
+})
