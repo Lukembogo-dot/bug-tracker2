@@ -13,7 +13,7 @@ jest.mock("pg");
 
 describe("User service testing", () => {
   
-   // User creation  and retrieval tests
+   // Tests for successful user functions.
    it("should return a list of all users", async () =>{
     const mockUsers: any  = [
     {
@@ -101,7 +101,7 @@ describe("User service testing", () => {
         json: jest.fn()
       } as unknown as Response;
 
-      // Mock the repository and bcrypt
+      
       (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (jwt.sign as jest.Mock).mockReturnValue('mockToken');
