@@ -2,6 +2,9 @@ import type { Express } from "express";
 import * as userController from "../controllers/user.controller";
 
 const userRoutes = (app:Express) => {
+    // GET /users - Get all users
+    app.get('/users', userController.getAllUsersController);
+
     // POST /users/register - Create a new user
     app.post('/users/register', userController.createUserController);
 
@@ -16,6 +19,9 @@ const userRoutes = (app:Express) => {
 
     // PUT /users/change-password - Change password
     app.put('/users/change-password', userController.changePasswordController);
+
+    // DELETE /users/:id - Delete user
+    app.delete('/users/:id', userController.deleteUserController);
 }
 
 export default userRoutes;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1762097024802" clover="3.2.0">
-  <project timestamp="1762097024803" name="All files">
-    <metrics statements="947" coveredstatements="26" conditionals="361" coveredconditionals="1" methods="107" coveredmethods="3" elements="1415" coveredelements="30" complexity="0" loc="947" ncloc="947" packages="7" files="20" classes="20"/>
+<coverage generated="1762848369840" clover="3.2.0">
+  <project timestamp="1762848369840" name="All files">
+    <metrics statements="961" coveredstatements="26" conditionals="361" coveredconditionals="1" methods="110" coveredmethods="3" elements="1432" coveredelements="30" complexity="0" loc="961" ncloc="961" packages="7" files="20" classes="20"/>
     <package name="src">
       <metrics statements="28" coveredstatements="2" conditionals="4" coveredconditionals="0" methods="3" coveredmethods="1"/>
       <file name="basicutils.ts" path="C:\Users\Blac\Videos\bug-tracker2\src\basicutils.ts">
@@ -40,7 +40,7 @@
       </file>
     </package>
     <package name="src.controllers">
-      <metrics statements="188" coveredstatements="0" conditionals="22" coveredconditionals="0" methods="28" coveredmethods="0"/>
+      <metrics statements="192" coveredstatements="0" conditionals="22" coveredconditionals="0" methods="29" coveredmethods="0"/>
       <file name="bug.controller.ts" path="C:\Users\Blac\Videos\bug-tracker2\src\controllers\bug.controller.ts">
         <metrics statements="66" coveredstatements="0" conditionals="10" coveredconditionals="0" methods="9" coveredmethods="0"/>
         <line num="16" count="0" type="stmt"/>
@@ -217,29 +217,33 @@
         <line num="158" count="0" type="stmt"/>
       </file>
       <file name="user.controller.ts" path="C:\Users\Blac\Videos\bug-tracker2\src\controllers\user.controller.ts">
-        <metrics statements="22" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="0"/>
+        <metrics statements="26" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="0"/>
         <line num="2" count="0" type="stmt"/>
-        <line num="9" count="0" type="stmt"/>
-        <line num="12" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
         <line num="13" count="0" type="stmt"/>
         <line num="14" count="0" type="stmt"/>
-        <line num="16" count="0" type="stmt"/>
-        <line num="21" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
         <line num="22" count="0" type="stmt"/>
         <line num="23" count="0" type="stmt"/>
-        <line num="25" count="0" type="stmt"/>
-        <line num="30" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
         <line num="31" count="0" type="stmt"/>
         <line num="32" count="0" type="stmt"/>
-        <line num="34" count="0" type="stmt"/>
-        <line num="39" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
         <line num="40" count="0" type="stmt"/>
         <line num="41" count="0" type="stmt"/>
-        <line num="43" count="0" type="stmt"/>
-        <line num="48" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
         <line num="49" count="0" type="stmt"/>
         <line num="50" count="0" type="stmt"/>
-        <line num="52" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.middleware">
@@ -543,7 +547,7 @@
       </file>
     </package>
     <package name="src.routes">
-      <metrics statements="40" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="0"/>
+      <metrics statements="41" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="0"/>
       <file name="bug.routes.ts" path="C:\Users\Blac\Videos\bug-tracker2\src\routes\bug.routes.ts">
         <metrics statements="12" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="2" count="0" type="stmt"/>
@@ -586,7 +590,7 @@
         <line num="24" count="0" type="stmt"/>
       </file>
       <file name="user.routes.ts" path="C:\Users\Blac\Videos\bug-tracker2\src\routes\user.routes.ts">
-        <metrics statements="8" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <metrics statements="9" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="2" count="0" type="stmt"/>
         <line num="4" count="0" type="stmt"/>
         <line num="6" count="0" type="stmt"/>
@@ -595,10 +599,11 @@
         <line num="15" count="0" type="stmt"/>
         <line num="18" count="0" type="stmt"/>
         <line num="21" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.services">
-      <metrics statements="377" coveredstatements="20" conditionals="218" coveredconditionals="1" methods="35" coveredmethods="2"/>
+      <metrics statements="386" coveredstatements="20" conditionals="218" coveredconditionals="1" methods="37" coveredmethods="2"/>
       <file name="bug.services.ts" path="C:\Users\Blac\Videos\bug-tracker2\src\services\bug.services.ts">
         <metrics statements="108" coveredstatements="20" conditionals="69" coveredconditionals="1" methods="11" coveredmethods="2"/>
         <line num="1" count="1" type="stmt"/>
@@ -640,11 +645,11 @@
         <line num="84" count="0" type="stmt"/>
         <line num="85" count="0" type="stmt"/>
         <line num="90" count="1" type="stmt"/>
-        <line num="91" count="1" type="stmt"/>
-        <line num="92" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="91" count="2" type="stmt"/>
+        <line num="92" count="2" type="cond" truecount="1" falsecount="1"/>
         <line num="93" count="0" type="stmt"/>
-        <line num="96" count="1" type="stmt"/>
-        <line num="97" count="1" type="stmt"/>
+        <line num="96" count="2" type="stmt"/>
+        <line num="97" count="2" type="stmt"/>
         <line num="99" count="0" type="stmt"/>
         <line num="100" count="0" type="stmt"/>
         <line num="105" count="1" type="stmt"/>
@@ -881,7 +886,7 @@
         <line num="139" count="0" type="stmt"/>
       </file>
       <file name="user.services.ts" path="C:\Users\Blac\Videos\bug-tracker2\src\services\user.services.ts">
-        <metrics statements="105" coveredstatements="0" conditionals="65" coveredconditionals="0" methods="6" coveredmethods="0"/>
+        <metrics statements="114" coveredstatements="0" conditionals="65" coveredconditionals="0" methods="8" coveredmethods="0"/>
         <line num="1" count="0" type="stmt"/>
         <line num="4" count="0" type="stmt"/>
         <line num="6" count="0" type="stmt"/>
@@ -969,24 +974,33 @@
         <line num="200" count="0" type="stmt"/>
         <line num="201" count="0" type="stmt"/>
         <line num="202" count="0" type="stmt"/>
-        <line num="203" count="0" type="stmt"/>
-        <line num="205" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="205" count="0" type="stmt"/>
         <line num="206" count="0" type="stmt"/>
-        <line num="209" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="207" count="0" type="stmt"/>
         <line num="210" count="0" type="stmt"/>
-        <line num="213" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="214" count="0" type="stmt"/>
-        <line num="218" count="0" type="stmt"/>
-        <line num="219" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="220" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="216" count="0" type="stmt"/>
         <line num="224" count="0" type="stmt"/>
-        <line num="225" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="225" count="0" type="stmt"/>
         <line num="226" count="0" type="stmt"/>
+        <line num="227" count="0" type="stmt"/>
+        <line num="229" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="230" count="0" type="stmt"/>
-        <line num="233" count="0" type="stmt"/>
-        <line num="235" count="0" type="stmt"/>
-        <line num="237" count="0" type="stmt"/>
+        <line num="233" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="234" count="0" type="stmt"/>
+        <line num="237" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="238" count="0" type="stmt"/>
+        <line num="242" count="0" type="stmt"/>
+        <line num="243" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="244" count="0" type="stmt"/>
+        <line num="248" count="0" type="stmt"/>
+        <line num="249" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="250" count="0" type="stmt"/>
+        <line num="254" count="0" type="stmt"/>
+        <line num="257" count="0" type="stmt"/>
+        <line num="259" count="0" type="stmt"/>
+        <line num="261" count="0" type="stmt"/>
+        <line num="262" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.utils">

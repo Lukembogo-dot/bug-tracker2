@@ -20,7 +20,7 @@ describe("Bugs Service Test Suite", () => {
          expect(BugRepository.getAllBugs).toHaveBeenCalledTimes(1);
     });
 
-    it("should return a bug by product", async () => {
+    it("should return a bug by id", async () => {
         const mockBugs = { bugid: 1, title: "Task 1", description: "Desc 1", status: "Open", priority: "High", projectid: 10, reportedby: 10, assignedto: 21, createdat: "2025-10-27T10:55:33.070Z"};
         (BugRepository.getBugById as jest.Mock).mockResolvedValue(mockBugs);
    
