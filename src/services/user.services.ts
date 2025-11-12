@@ -107,7 +107,7 @@ export const loginUser = async (req: Request, res: Response) => {
         // Remove password hash from response
         const { PasswordHash, ...userResponse } = user;
 
-        res.json({
+        res.status(200).json({
             message: "Login successful",
             token,
             user: userResponse
@@ -137,8 +137,8 @@ export const getUserProfile = async (req: Request, res: Response) => {
 
         // Remove password hash from response
         const { PasswordHash, ...userResponse } = user;
-
-        res.json({ user: userResponse });
+        
+        res.status(200).json({ user: userResponse });
     } catch (error: any) {
         console.error('Error getting user profile:', error);
         res.status(500).json({
@@ -183,7 +183,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         // Remove password hash from response
         const { PasswordHash, ...userResponse } = updatedUser;
 
-        res.json({
+        res.status(200).json({
             message: "Profile updated successfully",
             user: userResponse
         });
@@ -232,7 +232,7 @@ export const changePassword = async (req: Request, res: Response) => {
         // Update password
         await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
 
-        res.json({ message: "Password changed successfully" });
+        res.status(204).json({ message: "Password changed successfully" });
     } catch (error: any) {
         console.error('Error changing password:', error);
         res.status(500).json({
