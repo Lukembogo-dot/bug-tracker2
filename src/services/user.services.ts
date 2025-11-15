@@ -6,35 +6,35 @@ import { CreateUser, User } from '../Types/user.types';
 import { UserRepository } from '../repositories/user.repositories';
 
 const validateAndParseCredentials = async (body:any): Promise<CreateUser> => {
-const {Username, Email, Password, Role} = body ?? {};
-if(!Username || !Email || !Password){
-    throw new Error("Missing credentials, please fully fill credentials required")
-};
+ const {username, email, password, role} = body ?? {};
+ if(!username || !email || !password){
+     throw new Error("Missing credentials, please fully fill credentials required")
+ };
 
-if(typeof Username !== 'string' || typeof Email !== 'string') {
-    throw new Error("Invalid field types  in req.body");
-}
-const username = Username.trim();
-const email = Email.trim().toLowerCase();
+ if(typeof username !== 'string' || typeof email !== 'string') {
+     throw new Error("Invalid field types  in req.body");
+ }
+ const trimmedUsername = username.trim();
+ const trimmedEmail = email.trim().toLowerCase();
 
-const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+ const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if(!emailRe.test(email)){
-    throw new Error('Invalid email format');
-}
+ if(!emailRe.test(trimmedEmail)){
+     throw new Error('Invalid email format');
+ }
 
-if(Password.length < 8){
-    throw new Error('Password must be at least 8 characters');
-};
+ if(password.length < 8){
+     throw new Error('Password must be at least 8 characters');
+ };
 
-const passwordHash = await bcrypt.hash(Password, 10);
+ const passwordHash = await bcrypt.hash(password, 10);
 
-return{
-    Username: username,
-    Email: email,
-    PasswordHash: passwordHash,
-    Role: Role && typeof Role === 'string' ? Role : 'User'
-}
+ return{
+     Username: trimmedUsername,
+     Email: trimmedEmail,
+     PasswordHash: passwordHash,
+     Role: role && typeof role === 'string' ? role : 'User'
+ }
 }
 
 export const createUser = async (req: Request, res: Response) => {
@@ -107,7 +107,7 @@ export const loginUser = async (req: Request, res: Response) => {
         // Remove password hash from response
         const { PasswordHash, ...userResponse } = user;
 
-        res.json({
+        res.status(200).json({
             message: "Login successful",
             token,
             user: userResponse
@@ -137,8 +137,8 @@ export const getUserProfile = async (req: Request, res: Response) => {
 
         // Remove password hash from response
         const { PasswordHash, ...userResponse } = user;
-
-        res.json({ user: userResponse });
+        
+        res.status(200).json({ user: userResponse });
     } catch (error: any) {
         console.error('Error getting user profile:', error);
         res.status(500).json({
@@ -183,7 +183,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         // Remove password hash from response
         const { PasswordHash, ...userResponse } = updatedUser;
 
-        res.json({
+        res.status(200).json({
             message: "Profile updated successfully",
             user: userResponse
         });
@@ -191,6 +191,61 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         console.error('Error updating user profile:', error);
         res.status(500).json({
             message: "Failed to update profile",
+            error: error.message
+        });
+    }
+}
+
+// Get all users
+export const getAllUsers = async (req: Request, res: Response) => {
+    try {
+        const users = await UserRepository.getAllUsers();
+
+        // Remove password hashes from response
+        const usersResponse = users.map(user => {
+            const { PasswordHash, ...userWithoutPassword } = user;
+            return userWithoutPassword;
+        });
+
+        res.json({
+            message: "Users retrieved successfully",
+            users: usersResponse
+        });
+    } catch (error: any) {
+        console.error('Error getting all users:', error);
+        res.status(500).json({
+            message: "Failed to get users",
+            error: error.message
+        });
+    }
+}
+
+// Delete user
+export const deleteUser = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.id);
+
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+
+        // Check if user exists
+        const user = await UserRepository.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Delete the user
+        const deleted = await UserRepository.deleteUser(userId);
+        if (!deleted) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json({ message: "User deleted successfully" });
+    } catch (error: any) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({
+            message: "Failed to delete user",
             error: error.message
         });
     }
@@ -232,7 +287,7 @@ export const changePassword = async (req: Request, res: Response) => {
         // Update password
         await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
 
-        res.json({ message: "Password changed successfully" });
+        res.status(204).json({ message: "Password changed successfully" });
     } catch (error: any) {
         console.error('Error changing password:', error);
         res.status(500).json({

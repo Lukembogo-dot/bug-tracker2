@@ -4,7 +4,9 @@ import {
     loginUser,
     getUserProfile,
     updateUserProfile,
-    changePassword
+    changePassword,
+    getAllUsers,
+    deleteUser
 } from '../services/user.services';
 import { handleControllerError } from '../utils/errorHandler';
 
@@ -39,6 +41,24 @@ export const getUserProfileController = async (req: Request, res: Response) => {
 export const updateUserProfileController = async (req: Request, res: Response) => {
     try {
         await updateUserProfile(req, res);
+    } catch (error: any) {
+        handleControllerError(error, res);
+    }
+};
+
+// Get all users
+export const getAllUsersController = async (req: Request, res: Response) => {
+    try {
+        await getAllUsers(req, res);
+    } catch (error: any) {
+        handleControllerError(error, res);
+    }
+};
+
+// Delete user
+export const deleteUserController = async (req: Request, res: Response) => {
+    try {
+        await deleteUser(req, res);
     } catch (error: any) {
         handleControllerError(error, res);
     }
