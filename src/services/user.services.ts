@@ -27,6 +27,8 @@ const validateAndParseCredentials = async (body:any): Promise<CreateUser> => {
      throw new Error('Password must be at least 8 characters');
  };
 
+ console.log("this is the pass", password);
+
  const passwordHash = await bcrypt.hash(password, 10);
 
  return{
@@ -57,7 +59,7 @@ export const createUser = async (req: Request, res: Response) => {
         const createdUser = await UserRepository.createUser(newUser);
 
         // Remove password hash from response
-        const { PasswordHash, ...userResponse } = createdUser;
+        const { passwordhash, ...userResponse } = createdUser;
 
         res.status(201).json({
             message: "User created successfully",
@@ -87,8 +89,12 @@ export const loginUser = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
+
+        console.log("Password from client:", password);
+        console.log("Password hash from DB:", user);
+
         // Verify password
-        const isPasswordValid = await bcrypt.compare(password, user.PasswordHash);
+        const isPasswordValid = await bcrypt.compare(password, user.passwordhash);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
@@ -105,7 +111,7 @@ export const loginUser = async (req: Request, res: Response) => {
         );
 
         // Remove password hash from response
-        const { PasswordHash, ...userResponse } = user;
+        const { passwordhash, ...userResponse } = user;
 
         res.status(200).json({
             message: "Login successful",
@@ -136,7 +142,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
         }
 
         // Remove password hash from response
-        const { PasswordHash, ...userResponse } = user;
+        const { passwordhash, ...userResponse } = user;
         
         res.status(200).json({ user: userResponse });
     } catch (error: any) {
@@ -181,7 +187,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         }
 
         // Remove password hash from response
-        const { PasswordHash, ...userResponse } = updatedUser;
+        const { passwordhash, ...userResponse } = updatedUser;
 
         res.status(200).json({
             message: "Profile updated successfully",
@@ -203,7 +209,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
         // Remove password hashes from response
         const usersResponse = users.map(user => {
-            const { PasswordHash, ...userWithoutPassword } = user;
+            const { passwordhash, ...userWithoutPassword } = user;
             return userWithoutPassword;
         });
 
@@ -276,7 +282,7 @@ export const changePassword = async (req: Request, res: Response) => {
         }
 
         // Verify current password
-        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.PasswordHash);
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordhash);
         if (!isCurrentPasswordValid) {
             return res.status(401).json({ message: "Current password is incorrect" });
         }

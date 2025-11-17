@@ -1,6 +1,4 @@
 
-import { CommentRepository } from "../../src/repositories/comments.repositories"
-
 
     describe("CommentRepository Mock", () => {
          test("comments can be retreived from the database", async () => {
@@ -21,7 +19,7 @@ import { CommentRepository } from "../../src/repositories/comments.repositories"
 
          });
     });
-=======
+
 import { CommentRepository } from '../../src/repositories/comments.repositories';
 import { BugRepository } from '../../src/repositories/bugs.repositories';
 import { UserRepository } from '../../src/repositories/user.repositories';
@@ -375,4 +373,3 @@ describe("Comment service testing", () => {
   });
 });
 
- a849473700f20d8659f35b647d433f9acf57aaa5
