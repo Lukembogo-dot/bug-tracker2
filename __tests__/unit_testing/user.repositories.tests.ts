@@ -192,35 +192,16 @@ it("should update the user's password", async() => {
   CreatedAt: new Date("2025-10-30T14:30:00Z")
   };
 
-  const body={
-    currentPassword: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
-    newPassword:"12345678djd"
-  }
-  const mockReq = {user:{userId: mockUser.UserID}, body} as Request
-  const mockRes = {
-    status:jest.fn().mockReturnThis(),
-    json: jest.fn()
-  } as unknown as Response;
-
   (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
   (bcrypt.compare as jest.Mock).mockResolvedValue(true);
   (UserRepository.updateUser as jest.Mock).mockResolvedValue(null);
-
-  // Mock bcrypt.hash to return a hashed password
   (bcrypt.hash as jest.Mock).mockResolvedValue('$2b$10$mockHashedPassword');
 
-
-  await UserServices.changePassword(mockReq, mockRes)
+  await UserServices.updateUserPassword(mockUser.UserID, '1234trrfdgfsesfchfhgjghguyfytrdrsrs', '12345678djd');
 
   expect(UserRepository.updateUser).toHaveBeenCalledWith(mockUser.UserID, {
-    PasswordHash: expect.any(String)
+    PasswordHash: '$2b$10$mockHashedPassword'
   });
-  expect(mockRes.status).toHaveBeenCalledWith(204)
-  expect(mockRes.json).toHaveBeenCalledWith(
-    { message: "Password changed successfully" }
-  )
-
-
 });
 
 
@@ -308,61 +289,7 @@ it("should update the user's password", async() => {
       await expect(UserServices.updateUserProfile(999, { Username: "newname" })).rejects.toThrow("User not found");
     });
 
-    it("should fail to change password when unauthorized", async () => {
-      const mockReq = { user: null, body: { currentPassword: "old", newPassword: "new12345678" } } as unknown as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-
-      await UserServices.changePassword(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Unauthorized" });
-    });
-
-    it("should fail to change password with missing fields", async () => {
-      const mockReq = { user: { userId: 1 }, body: { currentPassword: "old" } } as Request; // Missing newPassword
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-
-      await UserServices.changePassword(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Current password and new password are required" });
-    });
-
-    it("should fail to change password with short new password", async () => {
-      const mockReq = { user: { userId: 1 }, body: { currentPassword: "old", newPassword: "short" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-
-      await UserServices.changePassword(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "New password must be at least 8 characters" });
-    });
-
-    it("should fail to change password when user not found", async () => {
-      const mockReq = { user: { userId: 999 }, body: { currentPassword: "old", newPassword: "new12345678" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-
-      (UserRepository.getUserById as jest.Mock).mockResolvedValue(null);
-
-      await UserServices.changePassword(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "User not found" });
-    });
-
-    it("should fail to change password with incorrect current password", async () => {
+    it("should fail to update password with missing fields", async () => {
       const mockUser = {
         UserID: 1,
         Username: "john doe",
@@ -371,22 +298,50 @@ it("should update the user's password", async() => {
         Role: 'admin',
         CreatedAt: new Date("2025-10-30T14:30:00Z")
       };
-      const mockReq = { user: { userId: mockUser.UserID }, body: { currentPassword: "wrong", newPassword: "new12345678" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
+
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
+
+      await expect(UserServices.updateUserPassword(mockUser.UserID, "", "new12345678")).rejects.toThrow("Current password and new password are required");
+    });
+
+    it("should fail to update password with short new password", async () => {
+      const mockUser = {
+        UserID: 1,
+        Username: "john doe",
+        Email: "johndoe@gmail.com",
+        PasswordHash: 'hashedpassword',
+        Role: 'admin',
+        CreatedAt: new Date("2025-10-30T14:30:00Z")
+      };
+
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
+
+      await expect(UserServices.updateUserPassword(mockUser.UserID, "old", "short")).rejects.toThrow("New password must be at least 8 characters");
+    });
+
+    it("should fail to update password when user not found", async () => {
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(null);
+
+      await expect(UserServices.updateUserPassword(999, "old", "new12345678")).rejects.toThrow("User not found");
+    });
+
+    it("should fail to update password with incorrect current password", async () => {
+      const mockUser = {
+        UserID: 1,
+        Username: "john doe",
+        Email: "johndoe@gmail.com",
+        PasswordHash: 'hashedpassword',
+        Role: 'admin',
+        CreatedAt: new Date("2025-10-30T14:30:00Z")
+      };
 
       (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await UserServices.changePassword(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Current password is incorrect" });
+      await expect(UserServices.updateUserPassword(mockUser.UserID, "wrong", "new12345678")).rejects.toThrow("Current password is incorrect");
     });
 
-    it("should fail to change password on database error", async () => {
+    it("should fail to update password on database error", async () => {
       const mockUser = {
         UserID: 1,
         Username: "john doe",
@@ -395,22 +350,11 @@ it("should update the user's password", async() => {
         Role: 'admin',
         CreatedAt: new Date("2025-10-30T14:30:00Z")
       };
-      const mockReq = { user: { userId: mockUser.UserID }, body: { currentPassword: "old", newPassword: "new12345678" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
 
       (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (UserRepository.updateUser as jest.Mock).mockRejectedValue(new Error("Database error"));
 
-      await UserServices.changePassword(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        message: "Failed to change password",
-        error: "Database error"
-      });
+      await expect(UserServices.updateUserPassword(mockUser.UserID, "old", "new12345678")).rejects.toThrow("Database error");
     });
 })
