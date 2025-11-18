@@ -4,7 +4,7 @@ import {
     loginUser,
     getUserProfile,
     updateUserProfile,
-    changePassword
+    updateUserPassword
 } from '../services/user.services';
 import { handleControllerError } from '../utils/errorHandler';
 
@@ -76,10 +76,16 @@ export const updateUserProfileController = async (req: Request, res: Response) =
     }
 };
 
-// Change password
-export const changePasswordController = async (req: Request, res: Response) => {
+// Update user password
+export const updateUserPasswordController = async (req: Request, res: Response) => {
     try {
-        await changePassword(req, res);
+        const userId = (req as any).user?.userId; // From auth middleware
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const { currentPassword, newPassword } = req.body;
+        await updateUserPassword(userId, currentPassword, newPassword);
+        res.status(204).json({ message: "Password updated successfully" });
     } catch (error: any) {
         handleControllerError(error, res);
     }
