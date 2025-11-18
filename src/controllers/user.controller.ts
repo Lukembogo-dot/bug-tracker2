@@ -20,7 +20,13 @@ export const createUserController = async (req: Request, res: Response) => {
 // Login user
 export const loginUserController = async (req: Request, res: Response) => {
     try {
-        await loginUser(req, res);
+        const { email, password } = req.body;
+        const result = await loginUser(email, password);
+        res.status(200).json({
+            message: "Login successful",
+            token: result.token,
+            user: result.user
+        });
     } catch (error: any) {
         handleControllerError(error, res);
     }
