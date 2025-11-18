@@ -20,3 +20,7 @@ export interface UpdateUser {
   PasswordHash?: string;
   Role?: string;
 }
+<<<<<<< HEAD
+
+=======
+>>>>>>> c5b7d3fc7ee581d98dbfcc95b9edc5db87545995

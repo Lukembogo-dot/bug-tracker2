@@ -63,7 +63,7 @@ export const createUser = async (userData: any) => {
     const createdUser = await UserRepository.createUser(newUser);
 
     // Remove password hash from response
-    const { PasswordHash, ...userResponse } = createdUser;
+    const { passwordhash, ...userResponse } = createdUser;
     return userResponse;
 }
 
@@ -80,7 +80,7 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.PasswordHash);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordhash);
     if (!isPasswordValid) {
         throw new Error("Invalid email or password");
     }
@@ -97,20 +97,45 @@ export const loginUser = async (email: string, password: string) => {
     );
 
     // Remove password hash from response
-    const { PasswordHash, ...userResponse } = user;
+    const { passwordhash, ...userResponse } = user;
 
     return { token, user: userResponse };
 }
 
 // Get current user profile
+export const getUserProfile = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user?.userId; // From auth middleware
+
+      if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const user = await UserRepository.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Remove password hash from response
+        const { passwordhash, ...userResponse } = user;
+        
+        res.status(200).json({ user: userResponse });
+    } catch (error: any) {
+        console.error('Error getting user profile:', error);
+        res.status(500).json({
+            message: "Failed to get user profile",
+            error: error.message
+        });
+
 export const getUserProfile = async (userId: number) => {
     const user = await UserRepository.getUserById(userId);
     if (!user) {
         throw new Error("User not found");
+
     }
 
     // Remove password hash from response
-    const { PasswordHash, ...userResponse } = user;
+    const { passwordhash, ...userResponse } = user;
     return userResponse;
 }
 
@@ -167,7 +192,7 @@ export const updateUserProfile = async (id: number, updateData: UpdateUser) => {
     }
 
     // Remove password hash from response
-    const { PasswordHash, ...userResponse } = updatedUser;
+    const { passwordhash, ...userResponse } = updatedUser;
     return userResponse;
 }
 
@@ -188,7 +213,7 @@ export const updateUserPassword = async (userId: number, currentPassword: string
     }
 
     // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.PasswordHash);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordhash);
     if (!isCurrentPasswordValid) {
         throw new Error("Current password is incorrect");
     }
@@ -197,5 +222,5 @@ export const updateUserPassword = async (userId: number, currentPassword: string
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
     // Update password
-    await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
+    await UserRepository.updateUser(userId, { passwordhash: newPasswordHash });
 }
