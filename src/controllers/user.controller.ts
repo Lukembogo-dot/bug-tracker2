@@ -40,7 +40,12 @@ export const loginUserController = async (req: Request, res: Response) => {
 // Get current user profile
 export const getUserProfileController = async (req: Request, res: Response) => {
     try {
-        await getUserProfile(req, res);
+        const userId = (req as any).user?.userId; // From auth middleware
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const user = await getUserProfile(userId);
+        res.status(200).json({ user });
     } catch (error: any) {
         handleControllerError(error, res);
     }
