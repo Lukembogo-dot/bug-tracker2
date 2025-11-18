@@ -81,52 +81,38 @@ export const createUser = async (req: Request, res: Response) => {
 }
 
 // Login user
-export const loginUser = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-
+export const loginUser = async (email: string, password: string) => {
     if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
+        throw new Error("Email and password are required");
     }
 
-    try {
-        // Find user by email
-        const user = await UserRepository.getUserByEmail(email.toLowerCase().trim());
-        if (!user) {
-            return res.status(401).json({ message: "Invalid email or password" });
-        }
-
-        // Verify password
-        const isPasswordValid = await bcrypt.compare(password, user.PasswordHash);
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: "Invalid email or password" });
-        }
-
-        // Generate JWT token
-        const token = jwt.sign(
-            {
-                userId: user.UserID,
-                email: user.Email,
-                role: user.Role
-            },
-            process.env.JWT_SECRET || 'your-secret-key',
-            { expiresIn: '24h' }
-        );
-
-        // Remove password hash from response
-        const { PasswordHash, ...userResponse } = user;
-
-        res.status(200).json({
-            message: "Login successful",
-            token,
-            user: userResponse
-        });
-    } catch (error: any) {
-        console.error('Error logging in user:', error);
-        res.status(500).json({
-            message: "Failed to login",
-            error: error.message
-        });
+    // Find user by email
+    const user = await UserRepository.getUserByEmail(email.toLowerCase().trim());
+    if (!user) {
+        throw new Error("Invalid email or password");
     }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.PasswordHash);
+    if (!isPasswordValid) {
+        throw new Error("Invalid email or password");
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+        {
+            userId: user.UserID,
+            email: user.Email,
+            role: user.Role
+        },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
+    );
+
+    // Remove password hash from response
+    const { PasswordHash, ...userResponse } = user;
+
+    return { token, user: userResponse };
 }
 
 // Get current user profile
