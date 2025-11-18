@@ -18,7 +18,7 @@ const userRoutes = (app:Express) => {
     app.put('/users/profile', userController.updateUserProfileController);
 
     // PUT /users/change-password - Change password
-    app.put('/users/change-password', userController.changePasswordController);
+    app.put('/users/change-password', userController.updateUserPasswordController);
 
     // DELETE /users/:id - Delete user
     app.delete('/users/:id', userController.deleteUserController);
