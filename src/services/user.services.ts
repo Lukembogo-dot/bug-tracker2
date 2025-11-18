@@ -101,30 +101,15 @@ export const loginUser = async (email: string, password: string) => {
 }
 
 // Get current user profile
-export const getUserProfile = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user?.userId; // From auth middleware
-
-        if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-
-        const user = await UserRepository.getUserById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Remove password hash from response
-        const { PasswordHash, ...userResponse } = user;
-        
-        res.status(200).json({ user: userResponse });
-    } catch (error: any) {
-        console.error('Error getting user profile:', error);
-        res.status(500).json({
-            message: "Failed to get user profile",
-            error: error.message
-        });
+export const getUserProfile = async (userId: number) => {
+    const user = await UserRepository.getUserById(userId);
+    if (!user) {
+        throw new Error("User not found");
     }
+
+    // Remove password hash from response
+    const { PasswordHash, ...userResponse } = user;
+    return userResponse;
 }
 
 // Update user profile
