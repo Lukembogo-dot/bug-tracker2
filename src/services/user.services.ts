@@ -4,7 +4,17 @@ import { Request } from 'express';
 import jwt from 'jsonwebtoken';
 import { CreateUser, User } from '../Types/user.types';
 import { UserRepository } from '../repositories/user.repositories';
+import { request } from 'http';
 
+
+const ensureUserexists =async(id: number) => {
+  const verified = await UserRepository.getUserById(id);
+  if(verified){
+    console.log("User found proceeding to the next function")
+  } else{
+    console.log("User not found, please ensure the user exits")
+  }
+}
 const validateAndParseCredentials = async (body:any): Promise<CreateUser> => {
 const {Username, Email, Password, Role} = body ?? {};
 if(!Username || !Email || !Password){
@@ -149,52 +159,54 @@ export const getUserProfile = async (req: Request, res: Response) => {
 }
 
 // Update user profile
-export const updateUserProfile = async (req: Request, res: Response) => {
+export const updateUserProfile = async (id: number, user: User) => {
+    ensureUserexists(id);
+    
     try {
-        const userId = (req as any).user?.userId; // From auth middleware
+        //const userId = req.params.userId; // From auth middleware
 
-        if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
+       // if (!userId) {
+         //   console.log("User not found/ Unauthorised access")
+        //}
 
-        const { username, email } = req.body;
-        const updateData: any = {};
+       //const { username, email } = req.body;
+        // const updateData: any = {};
 
-        if (username) updateData.Username = username.trim();
-        if (email) updateData.Email = email.trim().toLowerCase();
+       // if (username) updateData.Username = username.trim();
+       // if (email) updateData.Email = email.trim().toLowerCase();
 
-        if (Object.keys(updateData).length === 0) {
-            return res.status(400).json({ message: "No valid fields to update" });
-        }
+        //if (Object.keys(updateData).length === 0) {
+         //   return res.status(400).json({ message: "No valid fields to update" });
+        //}
 
         // Check if email is already taken by another user
-        if (email) {
-            const existingUser = await UserRepository.getUserByEmail(email);
-            if (existingUser && existingUser.UserID !== userId) {
-                return res.status(409).json({ message: "Email is already taken" });
-            }
-        }
+       // if (email) {
+         //   const existingUser = await UserRepository.getUserByEmail(email);
+          //  if (existingUser && existingUser.UserID !== userId) {
+           //     return res.status(409).json({ message: "Email is already taken" });
+           // }
+       // }
 
-        const updatedUser = await UserRepository.updateUser(userId, updateData);
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        //const updatedUser = await UserRepository.updateUser(userId, updateData);
+       // if (!updatedUser) {
+        //    return res.status(404).json({ message: "User not found" });
+       // }
 
         // Remove password hash from response
-        const { PasswordHash, ...userResponse } = updatedUser;
+      //  const { PasswordHash, ...userResponse } = updatedUser;
 
-        res.status(200).json({
-            message: "Profile updated successfully",
-            user: userResponse
-        });
-    } catch (error: any) {
-        console.error('Error updating user profile:', error);
-        res.status(500).json({
-            message: "Failed to update profile",
-            error: error.message
-        });
+      //  res.status(200).json({
+       //     message: "Profile updated successfully",
+        //    user: userResponse
+     //   });
+   } catch (error: any) {
+       console.error('Error updating user profile:', error);
+     //   res.status(500).json({
+     //       message: "Failed to update profile",
+      //      error: error.message
+      //  });
     }
-}
+ }
 
 // Change password
 export const changePassword = async (req: Request, res: Response) => {
