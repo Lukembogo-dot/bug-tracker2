@@ -122,37 +122,30 @@ describe("User service testing", () => {
       });
     });
 
-    it("should get a user's profile", async() => {
-      const mockUser={
-        UserID:1,
-        Username: "john doe",
-        Email: "johndoe@gmail.com",
-        PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
-        Role: 'admin',
-        CreatedAt: new Date("2025-10-30T14:30:00Z")
-      }
-     const mockReq = { user: { userId: mockUser.UserID } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
 
-      (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
+  const mockUserForProfile = {
+    UserID:1,
+    Username: "john doe",
+    Email: "johndoe@gmail.com",
+    PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
+    Role: 'admin',
+    CreatedAt: new Date("2025-10-30T14:30:00Z")
+  };
 
-      await UserServices.getUserProfile(mockReq, mockRes);
+  it("should get a user's profile", async() => {
+    (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUserForProfile);
 
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        user: {
-          UserID: mockUser.UserID,
-          Username: mockUser.Username,
-          Email: mockUser.Email,
-          Role: mockUser.Role,
-          CreatedAt: mockUser.CreatedAt
-        }
-      });
+    const result = await UserServices.getUserProfile(mockUserForProfile.UserID);
+
+    expect(result).toEqual({
+      UserID: mockUserForProfile.UserID,
+      Username: mockUserForProfile.Username,
+      Email: mockUserForProfile.Email,
+      Role: mockUserForProfile.Role,
+      CreatedAt: mockUserForProfile.CreatedAt
+    });
   });
-  
+
   it("should update a user's credentials", async()=>{
     const mockUser={
         UserID:1,
@@ -257,32 +250,10 @@ it("should update the user's password", async() => {
       await expect(UserServices.loginUser(mockUser.Email, "wrongpassword")).rejects.toThrow("Invalid email or password");
     });
 
-    it("should fail to get user profile when unauthorized", async () => {
-      const mockReq = { user: null } as unknown as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-
-      await UserServices.getUserProfile(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Unauthorized" });
-    });
-
     it("should fail to get user profile when user not found", async () => {
-      const mockReq = { user: { userId: 999 } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-
       (UserRepository.getUserById as jest.Mock).mockResolvedValue(null);
 
-      await UserServices.getUserProfile(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "User not found" });
+      await expect(UserServices.getUserProfile(999)).rejects.toThrow("User not found");
     });
 
     it("should fail to update user profile with invalid email", async () => {
