@@ -11,7 +11,12 @@ import { handleControllerError } from '../utils/errorHandler';
 // Create a new user
 export const createUserController = async (req: Request, res: Response) => {
     try {
-        await createUser(req, res);
+        const userData = req.body;
+        const createdUser = await createUser(userData);
+        res.status(201).json({
+            message: "User created successfully",
+            user: createdUser
+        });
     } catch (error: any) {
         handleControllerError(error, res);
     }
