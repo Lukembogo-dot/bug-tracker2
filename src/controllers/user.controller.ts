@@ -1,12 +1,24 @@
 import { Request, Response } from 'express';
 import {
+    getAllUsers,
     createUser,
     loginUser,
     getUserProfile,
     updateUserProfile,
-    updateUserPassword
+    updateUserPassword,
+    deleteUser
 } from '../services/user.services';
 import { handleControllerError } from '../utils/errorHandler';
+
+// Get all users
+export const getAllUsersController = async (req: Request, res: Response) => {
+    try {
+        const users = await getAllUsers();
+        res.status(200).json({ users });
+    } catch (error: any) {
+        handleControllerError(error, res);
+    }
+};
 
 // Create a new user
 export const createUserController = async (req: Request, res: Response) => {
@@ -86,6 +98,20 @@ export const updateUserPasswordController = async (req: Request, res: Response) 
         const { currentPassword, newPassword } = req.body;
         await updateUserPassword(userId, currentPassword, newPassword);
         res.status(204).json({ message: "Password updated successfully" });
+    } catch (error: any) {
+        handleControllerError(error, res);
+    }
+};
+
+// Delete user
+export const deleteUserController = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.id);
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+        await deleteUser(userId);
+        res.status(204).send();
     } catch (error: any) {
         handleControllerError(error, res);
     }
