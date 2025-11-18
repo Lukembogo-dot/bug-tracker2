@@ -162,42 +162,30 @@ describe("User service testing", () => {
         Role: 'admin',
         CreatedAt: new Date("2025-10-30T14:30:00Z")
       }
-      const body={
-        username:"Paul-Muyali",
-        email:"paulmuyalikhams@gmail.com"
+      const updateData={
+        Username:"Paul-Muyali",
+        Email:"paulmuyalikhams@gmail.com"
       }
-      const mockReq = {user:{userId: mockUser.UserID}, body: body} as Request;
-
-      const mockRes ={
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
 
       const updatedUser = {
         ...mockUser,
-        Username: body.username,
-        Email: body.email
+        Username: updateData.Username,
+        Email: updateData.Email
       };
 
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser); // for ensureUserexists
       (UserRepository.updateUser as jest.Mock).mockResolvedValue(updatedUser);
       (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue(null); // No conflict
 
-      await UserServices.updateUserProfile(mockReq, mockRes);
+      const result = await UserServices.updateUserProfile(mockUser.UserID, updateData);
 
-      expect(UserRepository.updateUser).toHaveBeenCalledWith(mockUser.UserID, {
-        Username: body.username.trim(),
-        Email: body.email.trim().toLowerCase()
-      });
-      expect(mockRes.status).toHaveBeenCalledWith(200)
-      expect(mockRes.json).toHaveBeenCalledWith({
-       message:"Profile updated successfully",
-       user: {
-         UserID: updatedUser.UserID,
-         Username: updatedUser.Username,
-         Email: updatedUser.Email,
-         Role: updatedUser.Role,
-         CreatedAt: updatedUser.CreatedAt
-       }
+      expect(UserRepository.updateUser).toHaveBeenCalledWith(mockUser.UserID, updateData);
+      expect(result).toEqual({
+       UserID: updatedUser.UserID,
+       Username: updatedUser.Username,
+       Email: updatedUser.Email,
+       Role: updatedUser.Role,
+       CreatedAt: updatedUser.CreatedAt
       })
 });
     
@@ -314,30 +302,34 @@ it("should update the user's password", async() => {
       expect(mockRes.json).toHaveBeenCalledWith({ message: "User not found" });
     });
 
-    it("should fail to update user profile when unauthorized", async () => {
-      const mockReq = { user: null, body: { username: "newname" } } as unknown as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
+    it("should fail to update user profile with invalid email", async () => {
+      const mockUser = {
+        UserID: 1,
+        Username: "john doe",
+        Email: "johndoe@gmail.com",
+        PasswordHash: 'hashedpassword',
+        Role: 'admin',
+        CreatedAt: new Date("2025-10-30T14:30:00Z")
+      };
 
-      await UserServices.updateUserProfile(mockReq, mockRes);
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
 
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+      await expect(UserServices.updateUserProfile(mockUser.UserID, { Email: "invalid" })).rejects.toThrow("Invalid email format");
     });
 
     it("should fail to update user profile with no valid fields", async () => {
-      const mockReq = { user: { userId: 1 }, body: { invalidField: "value" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
+      const mockUser = {
+        UserID: 1,
+        Username: "john doe",
+        Email: "johndoe@gmail.com",
+        PasswordHash: 'hashedpassword',
+        Role: 'admin',
+        CreatedAt: new Date("2025-10-30T14:30:00Z")
+      };
 
-      await UserServices.updateUserProfile(mockReq, mockRes);
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
 
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "No valid fields to update" });
+      await expect(UserServices.updateUserProfile(mockUser.UserID, { invalidField: "value" } as any)).rejects.toThrow("No valid fields to update");
     });
 
     it("should fail to update user profile when email is already taken", async () => {
@@ -349,33 +341,17 @@ it("should update the user's password", async() => {
         Role: 'admin',
         CreatedAt: new Date("2025-10-30T14:30:00Z")
       };
-      const mockReq = { user: { userId: mockUser.UserID }, body: { email: "taken@example.com" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
 
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
       (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue({ ...mockUser, UserID: 2 }); // Different user
 
-      await UserServices.updateUserProfile(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(409);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Email is already taken" });
+      await expect(UserServices.updateUserProfile(mockUser.UserID, { Email: "taken@example.com" })).rejects.toThrow("Email is already taken");
     });
 
     it("should fail to update user profile when user not found", async () => {
-      const mockReq = { user: { userId: 999 }, body: { username: "newname" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
+      (UserRepository.getUserById as jest.Mock).mockResolvedValue(null);
 
-      (UserRepository.updateUser as jest.Mock).mockResolvedValue(null);
-
-      await UserServices.updateUserProfile(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "User not found" });
+      await expect(UserServices.updateUserProfile(999, { Username: "newname" })).rejects.toThrow("User not found");
     });
 
     it("should fail to change password when unauthorized", async () => {
