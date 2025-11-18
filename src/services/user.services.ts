@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { Request } from 'express';
 import jwt from 'jsonwebtoken';
-import { CreateUser, User } from '../Types/user.types';
+import { CreateUser, UpdateUser, User } from '../Types/user.types';
 import { UserRepository } from '../repositories/user.repositories';
 import { request } from 'http';
 
@@ -159,12 +159,15 @@ export const getUserProfile = async (req: Request, res: Response) => {
 }
 
 // Update user profile
-export const updateUserProfile = async (id: number, user: User) => {
+export const updateUserProfile = async (id: number, user: UpdateUser) => {
     ensureUserexists(id);
     
-    try {
+    
         //const userId = req.params.userId; // From auth middleware
-
+     const updated = await UserRepository.updateUser(id, user);
+     if(updated){
+        console.log("User updated successfully");
+     }
        // if (!userId) {
          //   console.log("User not found/ Unauthorised access")
         //}
@@ -199,13 +202,12 @@ export const updateUserProfile = async (id: number, user: User) => {
        //     message: "Profile updated successfully",
         //    user: userResponse
      //   });
-   } catch (error: any) {
-       console.error('Error updating user profile:', error);
+   
      //   res.status(500).json({
      //       message: "Failed to update profile",
       //      error: error.message
       //  });
-    }
+    
  }
 
 // Change password
