@@ -20,3 +20,4 @@ export interface UpdateUser {
   PasswordHash?: string;
   Role?: string;
 }
+

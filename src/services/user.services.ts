@@ -132,7 +132,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user?.userId; // From auth middleware
 
-        if (!userId) {
+      if (!userId) {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
