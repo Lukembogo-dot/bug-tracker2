@@ -2,7 +2,7 @@ export interface User {
   UserID: number;
   Username: string;
   Email: string;
-  PasswordHash: string;
+  passwordhash: string;
   Role: string;
   CreatedAt: Date;
 }

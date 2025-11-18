@@ -14,35 +14,37 @@ const ensureUserexists =async(id: number) => {
   }
 }
 const validateAndParseCredentials = async (body:any): Promise<CreateUser> => {
-const {Username, Email, Password, Role} = body ?? {};
-if(!Username || !Email || !Password){
-    throw new Error("Missing credentials, please fully fill credentials required")
-};
+ const {username, email, password, role} = body ?? {};
+ if(!username || !email || !password){
+     throw new Error("Missing credentials, please fully fill credentials required")
+ };
 
-if(typeof Username !== 'string' || typeof Email !== 'string') {
-    throw new Error("Invalid field types  in req.body");
-}
-const username = Username.trim();
-const email = Email.trim().toLowerCase();
+ if(typeof username !== 'string' || typeof email !== 'string') {
+     throw new Error("Invalid field types  in req.body");
+ }
+ const trimmedUsername = username.trim();
+ const trimmedEmail = email.trim().toLowerCase();
 
-const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+ const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if(!emailRe.test(email)){
-    throw new Error('Invalid email format');
-}
+ if(!emailRe.test(trimmedEmail)){
+     throw new Error('Invalid email format');
+ }
 
-if(Password.length < 8){
-    throw new Error('Password must be at least 8 characters');
-};
+ if(password.length < 8){
+     throw new Error('Password must be at least 8 characters');
+ };
 
-const passwordHash = await bcrypt.hash(Password, 10);
+ console.log("this is the pass", password);
 
-return{
-    Username: username,
-    Email: email,
-    PasswordHash: passwordHash,
-    Role: Role && typeof Role === 'string' ? Role : 'User'
-}
+ const passwordHash = await bcrypt.hash(password, 10);
+
+ return{
+     Username: trimmedUsername,
+     Email: trimmedEmail,
+     PasswordHash: passwordHash,
+     Role: role && typeof role === 'string' ? role : 'User'
+ }
 }
 
 export const createUser = async (userData: any) => {

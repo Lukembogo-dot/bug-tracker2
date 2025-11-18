@@ -1,50 +1,50 @@
 -- ...existing code...
 
 /*
-  Safe reset + seed script for SQL Server.
+  Safe reset + seed script for PostgreSQL.
   - Drops tables if they exist (correct order for FKs)
   - Recreates tables
-  - Inserts sample data (fixed Comments insert)
-  Run in SSMS, sqlcmd, or your preferred SQL client.
+  - Inserts sample data with proper bcrypt hashes
+  Run in psql or your preferred PostgreSQL client.
 */
 
 -- Drop tables in correct order to avoid FK errors
-DROP TABLE IF EXISTS dbo.Comments;
-DROP TABLE IF EXISTS dbo.Bugs;
-DROP TABLE IF EXISTS dbo.Projects;
-DROP TABLE IF EXISTS dbo.Users;
+DROP TABLE IF EXISTS Comments;
+DROP TABLE IF EXISTS Bugs;
+DROP TABLE IF EXISTS Projects;
+DROP TABLE IF EXISTS Users;
 
 -- 1. USERS TABLE
 CREATE TABLE Users (
-    UserID INT IDENTITY(1,1) PRIMARY KEY,
-    Username NVARCHAR(100) NOT NULL,
-    Email NVARCHAR(150) UNIQUE NOT NULL,
-    PasswordHash NVARCHAR(255) NOT NULL,
-    Role NVARCHAR(50) DEFAULT 'User',
-    CreatedAt DATETIME DEFAULT GETDATE()
+    UserID SERIAL PRIMARY KEY,
+    Username VARCHAR(100) NOT NULL,
+    Email VARCHAR(150) UNIQUE NOT NULL,
+    PasswordHash VARCHAR(255) NOT NULL,
+    Role VARCHAR(50) DEFAULT 'User',
+    CreatedAt TIMESTAMP DEFAULT NOW()
 );
 
 -- 2. PROJECTS TABLE
 CREATE TABLE Projects (
-    ProjectID INT IDENTITY(1,1) PRIMARY KEY,
-    ProjectName NVARCHAR(150) NOT NULL,
-    Description NVARCHAR(MAX),
+    ProjectID SERIAL PRIMARY KEY,
+    ProjectName VARCHAR(150) NOT NULL,
+    Description TEXT,
     CreatedBy INT NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
+    CreatedAt TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (CreatedBy) REFERENCES Users(UserID)
 );
 
 -- 3. BUGS TABLE
 CREATE TABLE Bugs (
-    BugID INT IDENTITY(1,1) PRIMARY KEY,
-    Title NVARCHAR(200) NOT NULL,
-    Description NVARCHAR(MAX),
-    Status NVARCHAR(50) DEFAULT 'Open',
-    Priority NVARCHAR(50) DEFAULT 'Medium',
+    BugID SERIAL PRIMARY KEY,
+    Title VARCHAR(200) NOT NULL,
+    Description TEXT,
+    Status VARCHAR(50) DEFAULT 'Open',
+    Priority VARCHAR(50) DEFAULT 'Medium',
     ProjectID INT NOT NULL,
     ReportedBy INT NULL,
     AssignedTo INT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
+    CreatedAt TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID),
     FOREIGN KEY (ReportedBy) REFERENCES Users(UserID) ON DELETE SET NULL,
     FOREIGN KEY (AssignedTo) REFERENCES Users(UserID)
@@ -52,29 +52,22 @@ CREATE TABLE Bugs (
 
 -- 4. COMMENTS TABLE
 CREATE TABLE Comments (
-    CommentID INT IDENTITY(1,1) PRIMARY KEY,
+    CommentID SERIAL PRIMARY KEY,
     BugID INT NOT NULL,
     UserID INT NOT NULL,
-    CommentText NVARCHAR(MAX) NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
+    CommentText TEXT NOT NULL,
+    CreatedAt TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (BugID) REFERENCES Bugs(BugID) ON DELETE CASCADE,
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
--- Optional: use TRUNCATE + reseed if you prefer to keep schemas and only clear data
--- TRUNCATE TABLE Comments; TRUNCATE TABLE Bugs; TRUNCATE TABLE Projects; TRUNCATE TABLE Users;
--- DBCC CHECKIDENT ('Users', RESEED, 0);
--- DBCC CHECKIDENT ('Projects', RESEED, 0);
--- DBCC CHECKIDENT ('Bugs', RESEED, 0);
--- DBCC CHECKIDENT ('Comments', RESEED, 0);
-
--- Insert sample data into Users table
+-- Insert sample data into Users table with proper bcrypt hashes
 INSERT INTO Users (Username, Email, PasswordHash, Role)
 VALUES
-('LukeMbogo', 'luke@example.com', 'hashed_password_1', 'Admin'),
-('JaneDoe', 'jane@example.com', 'hashed_password_2', 'Developer'),
-('JohnDev', 'john@example.com', 'hashed_password_3', 'Tester'),
-('SarahQA', 'sarah@example.com', 'hashed_password_4', 'QA Engineer');
+('LukeMbogo', 'luke@example.com', '$2b$10$wgDVqgCejackN3xN65SQNOESZ/kt5MCzuiFOo6svUjj3aEJ0Sg0hK', 'Admin'),
+('JaneDoe', 'jane@example.com', '$2b$10$8y3BnspYYVkRmZrxldBQBO1AM0CQZVqLSNHSa5r/iv3uEYMK4UreW', 'Developer'),
+('JohnDev', 'john@example.com', '$2b$10$P6/huKYGMapWko9I04qMveQRkQISFRLwMuWWGOPX1YgJL034M57Ou', 'Tester'),
+('SarahQA', 'sarah@example.com', '$2b$10$pwYhqZoYJ2oN8/41BGWeNe.ci.fUQkpNKRl6PlI0E/v3f7XGynNTe', 'QA Engineer');
 
 -- Insert sample data into Projects table
 INSERT INTO Projects (ProjectName, Description, CreatedBy, CreatedAt)
