@@ -84,40 +84,33 @@ describe("User service testing", () => {
        error: "Missing credentials, please fully fill credentials required"
      }) 
     });
-     //login test.
-     it("should login a user successfully", async () => {
-      const mockUser={
+
+    const mockUserForLogin = {
       UserID:1,
       Username: "john doe",
-     Email: "johndoe@gmail.com",
-     PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
-     Role: 'admin',
-     CreatedAt: new Date("2025-10-30T14:30:00Z")
-      }
+      Email: "johndoe@gmail.com",
+      PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
+      Role: 'admin',
+      CreatedAt: new Date("2025-10-30T14:30:00Z")
+    };
 
-      const mockReq = {body:{email: mockUser.Email, password: mockUser.PasswordHash}} as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
+     //login test.
+     it("should login a user successfully", async () => {
 
-      
-      (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUserForLogin);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (jwt.sign as jest.Mock).mockReturnValue('mockToken');
 
-      await UserServices.loginUser(mockReq, mockRes);
+      const result = await UserServices.loginUser(mockUserForLogin.Email, mockUserForLogin.PasswordHash);
 
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        message: "Login successful",
+      expect(result).toEqual({
         token: 'mockToken',
         user: {
-          UserID: mockUser.UserID,
-          Username: mockUser.Username,
-          Email: mockUser.Email,
-          Role: mockUser.Role,
-          CreatedAt: mockUser.CreatedAt
+          UserID: mockUserForLogin.UserID,
+          Username: mockUserForLogin.Username,
+          Email: mockUserForLogin.Email,
+          Role: mockUserForLogin.Role,
+          CreatedAt: mockUserForLogin.CreatedAt
         }
       });
     });
@@ -191,13 +184,13 @@ describe("User service testing", () => {
     
 it("should update the user's password", async() => {
   const mockUser={
-        UserID:1,
-        Username: "john doe",
-        Email: "johndoe@gmail.com",
-        PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
-        Role: 'admin',
-        CreatedAt: new Date("2025-10-30T14:30:00Z")
-      }
+  UserID:1,
+  Username: "john doe",
+  Email: "johndoe@gmail.com",
+  PasswordHash: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
+  Role: 'admin',
+  CreatedAt: new Date("2025-10-30T14:30:00Z")
+  };
 
   const body={
     currentPassword: '1234trrfdgfsesfchfhgjghguyfytrdrsrs',
@@ -236,18 +229,9 @@ it("should update the user's password", async() => {
     // Additional fail tests for edge cases
 
     it("should fail to login with invalid email", async () => {
-      const mockReq = { body: { email: "invalid@example.com", password: "password123" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-
       (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue(null);
 
-      await UserServices.loginUser(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Invalid email or password" });
+      await expect(UserServices.loginUser("invalid@example.com", "password123")).rejects.toThrow("Invalid email or password");
     });
 
     it("should fail to login with incorrect password", async () => {
@@ -259,19 +243,11 @@ it("should update the user's password", async() => {
         Role: 'admin',
         CreatedAt: new Date("2025-10-30T14:30:00Z")
       };
-      const mockReq = { body: { email: mockUser.Email, password: "wrongpassword" } } as Request;
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
 
       (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await UserServices.loginUser(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith({ message: "Invalid email or password" });
+      await expect(UserServices.loginUser(mockUser.Email, "wrongpassword")).rejects.toThrow("Invalid email or password");
     });
 
     it("should fail to get user profile when unauthorized", async () => {
