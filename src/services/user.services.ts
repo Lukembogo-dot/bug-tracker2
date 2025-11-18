@@ -169,48 +169,31 @@ export const updateUserProfile = async (id: number, updateData: UpdateUser) => {
     return userResponse;
 }
 
-// Change password
-export const changePassword = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user?.userId; // From auth middleware
-        const { currentPassword, newPassword } = req.body;
-
-        if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ message: "Current password and new password are required" });
-        }
-
-        if (newPassword.length < 8) {
-            return res.status(400).json({ message: "New password must be at least 8 characters" });
-        }
-
-        // Get user
-        const user = await UserRepository.getUserById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Verify current password
-        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.PasswordHash);
-        if (!isCurrentPasswordValid) {
-            return res.status(401).json({ message: "Current password is incorrect" });
-        }
-
-        // Hash new password
-        const newPasswordHash = await bcrypt.hash(newPassword, 10);
-
-        // Update password
-        await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
-
-        res.status(204).json({ message: "Password changed successfully" });
-    } catch (error: any) {
-        console.error('Error changing password:', error);
-        res.status(500).json({
-            message: "Failed to change password",
-            error: error.message
-        });
+// Update user password
+export const updateUserPassword = async (userId: number, currentPassword: string, newPassword: string) => {
+    if (!currentPassword || !newPassword) {
+        throw new Error("Current password and new password are required");
     }
+
+    if (newPassword.length < 8) {
+        throw new Error("New password must be at least 8 characters");
+    }
+
+    // Get user
+    const user = await UserRepository.getUserById(userId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.PasswordHash);
+    if (!isCurrentPasswordValid) {
+        throw new Error("Current password is incorrect");
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
 }
