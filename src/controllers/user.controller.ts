@@ -38,7 +38,23 @@ export const getUserProfileController = async (req: Request, res: Response) => {
 // Update user profile
 export const updateUserProfileController = async (req: Request, res: Response) => {
     try {
-        await updateUserProfile(req, res);
+        const userId = parseInt(req.params.UserID);
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+
+        const updateData = {
+            Username: req.body.username,
+            Email: req.body.email,
+            Role: req.body.role
+        };
+
+        const updatedUser = await updateUserProfile(userId, updateData);
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: updatedUser
+        });
     } catch (error: any) {
         handleControllerError(error, res);
     }
