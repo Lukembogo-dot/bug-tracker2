@@ -9,10 +9,8 @@ import { request } from 'http';
 
 const ensureUserexists =async(id: number) => {
   const verified = await UserRepository.getUserById(id);
-  if(verified){
-    console.log("User found proceeding to the next function")
-  } else{
-    console.log("User not found, please ensure the user exits")
+  if(!verified){
+    throw new Error("User not found");
   }
 }
 const validateAndParseCredentials = async (body:any): Promise<CreateUser> => {
@@ -159,56 +157,61 @@ export const getUserProfile = async (req: Request, res: Response) => {
 }
 
 // Update user profile
-export const updateUserProfile = async (id: number, user: UpdateUser) => {
-    ensureUserexists(id);
-    
-    
-        //const userId = req.params.userId; // From auth middleware
-     const updated = await UserRepository.updateUser(id, user);
-     if(updated){
-        console.log("User updated successfully");
-     }
-       // if (!userId) {
-         //   console.log("User not found/ Unauthorised access")
-        //}
+export const updateUserProfile = async (id: number, updateData: UpdateUser) => {
+    await ensureUserexists(id);
 
-       //const { username, email } = req.body;
-        // const updateData: any = {};
+    // Validate and prepare update data
+    const validatedData: Partial<UpdateUser> = {};
 
-       // if (username) updateData.Username = username.trim();
-       // if (email) updateData.Email = email.trim().toLowerCase();
+    if (updateData.Username !== undefined) {
+        if (typeof updateData.Username !== 'string' || updateData.Username.trim() === '') {
+            throw new Error("Invalid username");
+        }
+        validatedData.Username = updateData.Username.trim();
+    }
 
-        //if (Object.keys(updateData).length === 0) {
-         //   return res.status(400).json({ message: "No valid fields to update" });
-        //}
-
+    if (updateData.Email !== undefined) {
+        if (typeof updateData.Email !== 'string') {
+            throw new Error("Invalid email type");
+        }
+        const email = updateData.Email.trim().toLowerCase();
+        const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRe.test(email)) {
+            throw new Error("Invalid email format");
+        }
         // Check if email is already taken by another user
-       // if (email) {
-         //   const existingUser = await UserRepository.getUserByEmail(email);
-          //  if (existingUser && existingUser.UserID !== userId) {
-           //     return res.status(409).json({ message: "Email is already taken" });
-           // }
-       // }
+        const existingUser = await UserRepository.getUserByEmail(email);
+        if (existingUser && existingUser.UserID !== id) {
+            throw new Error("Email is already taken");
+        }
+        validatedData.Email = email;
+    }
 
-        //const updatedUser = await UserRepository.updateUser(userId, updateData);
-       // if (!updatedUser) {
-        //    return res.status(404).json({ message: "User not found" });
-       // }
+    if (updateData.Role !== undefined) {
+        if (typeof updateData.Role !== 'string') {
+            throw new Error("Invalid role");
+        }
+        validatedData.Role = updateData.Role;
+    }
 
-        // Remove password hash from response
-      //  const { PasswordHash, ...userResponse } = updatedUser;
+    // Note: PasswordHash should not be updated here; use changePassword instead
+    if (updateData.PasswordHash !== undefined) {
+        throw new Error("Password cannot be updated via profile update");
+    }
 
-      //  res.status(200).json({
-       //     message: "Profile updated successfully",
-        //    user: userResponse
-     //   });
-   
-     //   res.status(500).json({
-     //       message: "Failed to update profile",
-      //      error: error.message
-      //  });
-    
- }
+    if (Object.keys(validatedData).length === 0) {
+        throw new Error("No valid fields to update");
+    }
+
+    const updatedUser = await UserRepository.updateUser(id, validatedData);
+    if (!updatedUser) {
+        throw new Error("Failed to update user");
+    }
+
+    // Remove password hash from response
+    const { PasswordHash, ...userResponse } = updatedUser;
+    return userResponse;
+}
 
 // Change password
 export const changePassword = async (req: Request, res: Response) => {
