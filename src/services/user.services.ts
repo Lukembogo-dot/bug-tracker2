@@ -45,39 +45,24 @@ return{
 }
 }
 
-export const createUser = async (req: Request, res: Response) => {
-     console.log("User received",req.body);
-    if(!req.body){
-        console.log("you need to fill in credentials");
-      return  res.status(400).json({message:"Please fill in credentials"});
-    };
-    try {
-        const newUser =  await  validateAndParseCredentials(req.body);
-        console.log("User parsed", newUser);
-
-        // Check if user already exists
-        const existingUser = await UserRepository.getUserByEmail(newUser.Email);
-        if (existingUser) {
-            return res.status(409).json({ message: "User with this email already exists" });
-        }
-
-        // Create the user
-        const createdUser = await UserRepository.createUser(newUser);
-
-        // Remove password hash from response
-        const { PasswordHash, ...userResponse } = createdUser;
-
-        res.status(201).json({
-            message: "User created successfully",
-            user: userResponse
-        });
-    } catch (error: any) {
-        console.error('Error creating user:', error);
-        res.status(500).json({
-            message: "Failed to create user",
-            error: error.message
-        });
+export const createUser = async (userData: any) => {
+    if(!userData){
+        throw new Error("Please fill in credentials");
     }
+    const newUser = await validateAndParseCredentials(userData);
+
+    // Check if user already exists
+    const existingUser = await UserRepository.getUserByEmail(newUser.Email);
+    if (existingUser) {
+        throw new Error("User with this email already exists");
+    }
+
+    // Create the user
+    const createdUser = await UserRepository.createUser(newUser);
+
+    // Remove password hash from response
+    const { PasswordHash, ...userResponse } = createdUser;
+    return userResponse;
 }
 
 // Login user
