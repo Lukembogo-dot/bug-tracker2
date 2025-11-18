@@ -208,5 +208,9 @@ export const updateUserPassword = async (userId: number, currentPassword: string
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
     // Update password
+
     await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
+
+    await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
+
 }
