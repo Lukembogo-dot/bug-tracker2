@@ -6,6 +6,11 @@ import { CreateUser, UpdateUser, User } from '../Types/user.types';
 import { UserRepository } from '../repositories/user.repositories';
 import { request } from 'http';
 
+// Get all users
+export const getAllUsers = async (): Promise<User[]> => {
+    return await UserRepository.getAllUsers();
+};
+
 
 const ensureUserexists =async(id: number) => {
   const verified = await UserRepository.getUserById(id);
@@ -63,7 +68,7 @@ export const createUser = async (userData: any) => {
     const createdUser = await UserRepository.createUser(newUser);
 
     // Remove password hash from response
-    const { passwordhash, ...userResponse } = createdUser;
+    const { PasswordHash, ...userResponse } = createdUser;
     return userResponse;
 }
 
@@ -80,7 +85,7 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.passwordhash);
+    const isPasswordValid = await bcrypt.compare(password, user.PasswordHash);
     if (!isPasswordValid) {
         throw new Error("Invalid email or password");
     }
@@ -97,45 +102,26 @@ export const loginUser = async (email: string, password: string) => {
     );
 
     // Remove password hash from response
-    const { passwordhash, ...userResponse } = user;
+    const { PasswordHash, ...userResponse } = user;
 
     return { token, user: userResponse };
 }
 
+// Delete user
+export const deleteUser = async (userId: number): Promise<boolean> => {
+    await ensureUserexists(userId);
+    return await UserRepository.deleteUser(userId);
+}
+
 // Get current user profile
-export const getUserProfile = async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user?.userId; // From auth middleware
-
-      if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-
-        const user = await UserRepository.getUserById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Remove password hash from response
-        const { passwordhash, ...userResponse } = user;
-        
-        res.status(200).json({ user: userResponse });
-    } catch (error: any) {
-        console.error('Error getting user profile:', error);
-        res.status(500).json({
-            message: "Failed to get user profile",
-            error: error.message
-        });
-
 export const getUserProfile = async (userId: number) => {
     const user = await UserRepository.getUserById(userId);
     if (!user) {
         throw new Error("User not found");
-
     }
 
     // Remove password hash from response
-    const { passwordhash, ...userResponse } = user;
+    const { PasswordHash, ...userResponse } = user;
     return userResponse;
 }
 
@@ -192,7 +178,7 @@ export const updateUserProfile = async (id: number, updateData: UpdateUser) => {
     }
 
     // Remove password hash from response
-    const { passwordhash, ...userResponse } = updatedUser;
+    const { PasswordHash, ...userResponse } = updatedUser;
     return userResponse;
 }
 
@@ -213,7 +199,7 @@ export const updateUserPassword = async (userId: number, currentPassword: string
     }
 
     // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordhash);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.PasswordHash);
     if (!isCurrentPasswordValid) {
         throw new Error("Current password is incorrect");
     }
@@ -222,5 +208,5 @@ export const updateUserPassword = async (userId: number, currentPassword: string
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
     // Update password
-    await UserRepository.updateUser(userId, { passwordhash: newPasswordHash });
+    await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
 }

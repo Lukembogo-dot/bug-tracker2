@@ -54,9 +54,9 @@ describe("User service testing", () => {
 
    it("should create a user", async () =>{
      const inputData = {
-      Username:"Paul",
-      Email:"paulmuyalikhams@gmail.com",
-      Password:"password123"
+      username:"Paul",
+      email:"paulmuyalikhams@gmail.com",
+      password:"password123"
      };
      const mockUser = {
       UserID: 1,
