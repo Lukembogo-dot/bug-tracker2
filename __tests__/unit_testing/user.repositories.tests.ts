@@ -53,15 +53,32 @@ describe("User service testing", () => {
    });
 
    it("should create a user", async () =>{
-     const mockUser = 
-     {
+     const inputData = {
       Username:"Paul",
       Email:"paulmuyalikhams@gmail.com",
-      PasswordHash:"jjajhfbahjediahiuhiu821",
-      Role:"admin"
+      Password:"password123"
      };
-     (UserRepository.createUser as jest.Mock).mockResolvedValue(mockUser)
+     const mockUser = {
+      UserID: 1,
+      Username:"Paul",
+      Email:"paulmuyalikhams@gmail.com",
+      PasswordHash:"hashedpassword",
+      Role:"admin",
+      CreatedAt: new Date()
+     };
+     (UserRepository.getUserByEmail as jest.Mock).mockResolvedValue(null);
+     (UserRepository.createUser as jest.Mock).mockResolvedValue(mockUser);
+     (bcrypt.hash as jest.Mock).mockResolvedValue("hashedpassword");
 
+     const result = await UserServices.createUser(inputData);
+
+     expect(result).toEqual({
+       UserID: 1,
+       Username: "Paul",
+       Email: "paulmuyalikhams@gmail.com",
+       Role: "admin",
+       CreatedAt: mockUser.CreatedAt
+     });
    });
    it("should reject a user who has not filled credentials when creating", async() => {
      const mockUser =
@@ -72,17 +89,7 @@ describe("User service testing", () => {
       Role:"admin"
      };
 
-     const mockReq = { body: mockUser } as Request;
-     const mockRes = {
-       status: jest.fn().mockReturnThis(),
-       json: jest.fn()
-     } as unknown as Response;
-     await UserServices.createUser(mockReq, mockRes);
-     expect(mockRes.status).toHaveBeenCalledWith(500);
-     expect(mockRes.json).toHaveBeenCalledWith({
-       message: "Failed to create user",
-       error: "Missing credentials, please fully fill credentials required"
-     }) 
+     await expect(UserServices.createUser(mockUser)).rejects.toThrow("Missing credentials, please fully fill credentials required");
     });
 
     const mockUserForLogin = {
