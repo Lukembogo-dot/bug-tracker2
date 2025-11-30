@@ -31,7 +31,7 @@ const pool = new Pool({
 
 // Connection retry configuration
 const MAX_RETRIES = 10;
-const RETRY_DELAY_MS = 5000;
+const RETRY_DELAY_MS = 10000;
 
 /**
  * Get PostgreSQL connection pool
