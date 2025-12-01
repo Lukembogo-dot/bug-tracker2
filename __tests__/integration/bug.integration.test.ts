@@ -11,7 +11,7 @@ describe('Bug Routes Integration Tests', () => {
     // Register and login user with unique email
     const uniqueEmail = `bugtest${Date.now()}@example.com`;
     const registerResponse = await request(app)
-      .post('/users/register')
+      .post('/api/users/register')
       .send({
         username: 'bugtester',
         email: uniqueEmail,
@@ -21,7 +21,7 @@ describe('Bug Routes Integration Tests', () => {
     userId = registerResponse.body.user.UserID;
 
     const loginResponse = await request(app)
-      .post('/users/login')
+      .post('/api/users/login')
       .send({
         email: uniqueEmail,
         password: 'password123'
@@ -30,7 +30,7 @@ describe('Bug Routes Integration Tests', () => {
 
     // Create a project
     const projectResponse = await request(app)
-      .post('/projects')
+      .post('/api/projects')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         ProjectName: 'Test Project',

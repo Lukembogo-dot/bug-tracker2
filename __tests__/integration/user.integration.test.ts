@@ -9,7 +9,7 @@ describe('User Routes Integration Tests', () => {
     // Register a test user with unique email
     const uniqueEmail = `test${Date.now()}@example.com`;
     const registerResponse = await request(app)
-      .post('/users/register')
+      .post('/api/users/register')
       .send({
         username: 'testuser',
         email: uniqueEmail,
@@ -21,7 +21,7 @@ describe('User Routes Integration Tests', () => {
 
     // Login to get token
     const loginResponse = await request(app)
-      .post('/users/login')
+      .post('/api/users/login')
       .send({
         email: uniqueEmail,
         password: 'password123'
@@ -32,7 +32,7 @@ describe('User Routes Integration Tests', () => {
 
   it('should get all users', async () => {
     const response = await request(app)
-      .get('/users')
+      .get('/api/users')
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(200);
@@ -42,7 +42,7 @@ describe('User Routes Integration Tests', () => {
 
   it('should register a new user', async () => {
     const response = await request(app)
-      .post('/users/register')
+      .post('/api/users/register')
       .send({
         username: 'newuser',
         email: 'new@example.com',
@@ -59,7 +59,7 @@ describe('User Routes Integration Tests', () => {
     // Register a user for this test
     const testEmail = `login${Date.now()}@example.com`;
     await request(app)
-      .post('/users/register')
+      .post('/api/users/register')
       .send({
         username: 'logintest',
         email: testEmail,
@@ -68,7 +68,7 @@ describe('User Routes Integration Tests', () => {
       });
 
     const response = await request(app)
-      .post('/users/login')
+      .post('/api/users/login')
       .send({
         email: testEmail,
         password: 'password123'
@@ -82,7 +82,7 @@ describe('User Routes Integration Tests', () => {
 
   it('should get user profile', async () => {
     const response = await request(app)
-      .get('/users/profile')
+      .get('/api/users/profile')
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(200);
@@ -91,7 +91,7 @@ describe('User Routes Integration Tests', () => {
 
   it('should update user profile', async () => {
     const response = await request(app)
-      .put('/users/profile')
+      .put('/api/users/profile')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         username: 'updateduser',
@@ -106,7 +106,7 @@ describe('User Routes Integration Tests', () => {
 
   it('should change user password', async () => {
     const response = await request(app)
-      .put('/users/change-password')
+      .put('/api/users/change-password')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         currentPassword: 'password123',
@@ -118,7 +118,7 @@ describe('User Routes Integration Tests', () => {
 
   it('should delete user', async () => {
     const response = await request(app)
-      .delete(`/users/${userId}`)
+      .delete(`/api/users/${userId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(204);
