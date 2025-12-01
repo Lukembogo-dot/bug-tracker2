@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
 
 export default app;
 
-if (!process.env.JEST_WORKER_ID) {
+if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, async () => {
         console.log("Starting server...");
         try {
