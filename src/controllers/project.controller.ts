@@ -95,7 +95,10 @@ export const getProjectsByCreatorController = async (req: Request, res: Response
  */
 export const createProjectController = async (req: Request, res: Response) => {
     try {
-        const projectData = req.body;
+        const projectData = {
+            ...req.body,
+            CreatedBy: (req as any).user.userId
+        };
         const project = await createProject(projectData);
         res.status(201).json({
             message: "Project created successfully",

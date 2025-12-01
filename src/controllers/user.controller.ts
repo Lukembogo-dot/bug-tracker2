@@ -66,9 +66,9 @@ export const getUserProfileController = async (req: Request, res: Response) => {
 // Update user profile
 export const updateUserProfileController = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.UserID);
-        if (!userId || isNaN(userId)) {
-            return res.status(400).json({ message: "Invalid user ID" });
+        const userId = (req as any).user?.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
         }
 
         const updateData = {
@@ -109,6 +109,10 @@ export const deleteUserController = async (req: Request, res: Response) => {
         const userId = parseInt(req.params.id);
         if (!userId || isNaN(userId)) {
             return res.status(400).json({ message: "Invalid user ID" });
+        }
+        const currentUser = (req as any).user;
+        if (currentUser.userId !== userId && currentUser.role !== 'admin') {
+            return res.status(403).json({ message: "Forbidden: Can only delete your own account or require admin role" });
         }
         await deleteUser(userId);
         res.status(204).send();

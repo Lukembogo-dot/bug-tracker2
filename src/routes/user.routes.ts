@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import * as userController from "../controllers/user.controller";
+import { requireAuth, requireAdmin } from "../middleware/auth.middleware";
 
 const userRoutes = (app:Express) => {
     // GET /users - Get all users
