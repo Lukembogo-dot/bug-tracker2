@@ -113,7 +113,10 @@ export const getCommentsByUserController = async (req: Request, res: Response) =
  */
 export const createCommentController = async (req: Request, res: Response) => {
     try {
-        const commentData = req.body;
+        const commentData = {
+            ...req.body,
+            UserID: (req as any).user.userId
+        };
         const comment = await createComment(commentData);
         res.status(201).json({
             message: "Comment created successfully",
