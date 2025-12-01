@@ -29,10 +29,10 @@ app.get('/', (req, res) => {
         message: "Bug Tracker API is running",
         version: "1.0.0",
         endpoints: {
-            bugs: "/bugs",
-            comments: "/comments",
-            projects: "/projects",
-            users: "/users"
+            bugs: "/api/bugs",
+            comments: "/api/comments",
+            projects: "/api/projects",
+            users: "/api/users"
         }
     });
 });
