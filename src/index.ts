@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import cors from 'cors';
 import { getPool } from '../db/config';
 import bugRoutes from './routes/bug.routes';
 import commentRoutes from './routes/comments.routes';
@@ -10,6 +11,7 @@ const  app = express();
 dotenv.config();
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 8081;
