@@ -37,18 +37,22 @@ app.get('/', (req, res) => {
     });
 });
 
-app.listen(3000, async () => {
-    console.log("Starting server...");
-    try {
-        const dbConnected = await getPool();
-        if(dbConnected){
-            console.log(`Server is running on http://localhost:${PORT}`);
-            console.log("Database connected Successfully");
+export default app;
+
+if (!process.env.JEST_WORKER_ID) {
+    app.listen(PORT, async () => {
+        console.log("Starting server...");
+        try {
+            const dbConnected = await getPool();
+            if(dbConnected){
+                console.log(`Server is running on http://localhost:${PORT}`);
+                console.log("Database connected Successfully");
+            }
+            else{
+                console.log("Database connection error");
+            }
+        } catch (error) {
+            console.log("Error starting the server", error);
         }
-        else{
-            console.log("Database connection error");
-        }
-    } catch (error) {
-        console.log("Error starting the server", error);
-    }
-});
+    });
+}

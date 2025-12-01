@@ -56,10 +56,21 @@ describe('User Routes Integration Tests', () => {
   });
 
   it('should login user', async () => {
+    // Register a user for this test
+    const testEmail = `login${Date.now()}@example.com`;
+    await request(app)
+      .post('/users/register')
+      .send({
+        username: 'logintest',
+        email: testEmail,
+        password: 'password123',
+        role: 'user'
+      });
+
     const response = await request(app)
       .post('/users/login')
       .send({
-        email: 'test@example.com',
+        email: testEmail,
         password: 'password123'
       });
 
