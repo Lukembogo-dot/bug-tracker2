@@ -37,12 +37,12 @@ app.get('/', (req, res) => {
     });
 });
 
-app.listen(3000, async () => {
+app.listen(PORT, async () => {
     console.log("Starting server...");
     try {
         const dbConnected = await getPool();
         if(dbConnected){
-            console.log(`Server is running on http://localhost:${PORT}`);
+            console.log(`Server is running on port ${PORT}`);
             console.log("Database connected Successfully");
         }
         else{
