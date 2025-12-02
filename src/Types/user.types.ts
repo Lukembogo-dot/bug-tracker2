@@ -1,10 +1,10 @@
 export interface User {
-  UserID: number;
-  Username: string;
-  Email: string;
-  PasswordHash: string;
-  Role: string;
-  CreatedAt: Date;
+  userid: number;
+  username: string;
+  email: string;
+  passwordhash: string;
+  role: string;
+  createdat: Date;
 }
 
 export interface CreateUser {

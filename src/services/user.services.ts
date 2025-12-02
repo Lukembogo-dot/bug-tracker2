@@ -42,8 +42,6 @@ const validateAndParseCredentials = async (body:any): Promise<CreateUser> => {
      throw new Error('Password must be at least 8 characters');
  };
 
- console.log("this is the pass", password);
-
  const passwordHash = await bcrypt.hash(password, 10);
 
  return{
@@ -70,7 +68,7 @@ export const createUser = async (userData: any) => {
     const createdUser = await UserRepository.createUser(newUser);
 
     // Remove password hash from response
-    const { PasswordHash, ...userResponse } = createdUser;
+    const { passwordhash, ...userResponse } = createdUser;
     return userResponse;
 }
 
@@ -87,24 +85,26 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.PasswordHash);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordhash);
     if (!isPasswordValid) {
         throw new Error("Invalid email or password");
     }
 
     // Generate JWT token
+    console.log('Generating token for user:', { userId: user.userid, email: user.email, role: user.role });
     const token = jwt.sign(
         {
-            userId: user.UserID,
-            email: user.Email,
-            role: user.Role
+            userId: user.userid,
+            email: user.email,
+            role: user.role
         },
         process.env.JWT_SECRET || 'your-secret-key',
         { expiresIn: '24h' }
     );
+    console.log('Generated token payload should include:', jwt.decode(token));
 
     // Remove password hash from response
-    const { PasswordHash, ...userResponse } = user;
+    const { passwordhash, ...userResponse } = user;
 
     return { token, user: userResponse };
 }
@@ -141,7 +141,7 @@ export const getUserProfile = async (userId: number) => {
     }
 
     // Remove password hash from response
-    const { PasswordHash, ...userResponse } = user;
+    const { passwordhash, ...userResponse } = user;
     return userResponse;
 }
 
@@ -170,7 +170,7 @@ export const updateUserProfile = async (id: number, updateData: UpdateUser) => {
         }
         // Check if email is already taken by another user
         const existingUser = await UserRepository.getUserByEmail(email);
-        if (existingUser && existingUser.UserID !== id) {
+        if (existingUser && existingUser.userid !== id) {
             throw new Error("Email is already taken");
         }
         validatedData.Email = email;
@@ -198,7 +198,7 @@ export const updateUserProfile = async (id: number, updateData: UpdateUser) => {
     }
 
     // Remove password hash from response
-    const { PasswordHash, ...userResponse } = updatedUser;
+    const { passwordhash, ...userResponse } = updatedUser;
     return userResponse;
 }
 
@@ -219,7 +219,7 @@ export const updateUserPassword = async (userId: number, currentPassword: string
     }
 
     // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.PasswordHash);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordhash);
     if (!isCurrentPasswordValid) {
         throw new Error("Current password is incorrect");
     }
@@ -228,8 +228,6 @@ export const updateUserPassword = async (userId: number, currentPassword: string
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
     // Update password
-
-    await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
 
     await UserRepository.updateUser(userId, { PasswordHash: newPasswordHash });
 

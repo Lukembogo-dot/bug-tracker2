@@ -8,6 +8,8 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
+    "types": ["node", "express", "jest", "supertest", "cors", "jsonwebtoken", "pg", "bcrypt", "bcryptjs", "dotenv", "mocha"],
+    
     "isolatedModules": true
   },
   "include": [

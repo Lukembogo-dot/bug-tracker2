@@ -19,7 +19,16 @@ declare global {
 export const authenticateToken = async (req: any, res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers['authorization'];
-        const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+        let token: string | undefined;
+
+        if (authHeader) {
+            if (authHeader.startsWith('Bearer ')) {
+                token = authHeader.split(' ')[1];
+            } else {
+                // Assume the entire header is the token (for flexibility)
+                token = authHeader;
+            }
+        }
 
         if (!token) {
             return res.status(401).json({ message: 'Access token required' });
@@ -31,7 +40,11 @@ export const authenticateToken = async (req: any, res: Response, next: NextFunct
         // Verify user still exists in database
         const user = await UserRepository.getUserById(decoded.userId);
         if (!user) {
-            return res.status(401).json({ message: 'User no longer exists' });
+            return res.status(401).json({
+                message: 'User no longer exists',
+                userId: decoded.userId,
+                details: 'The user account associated with this token has been deleted or does not exist. Please login again to obtain a new token.'
+            });
         }
 
         // Add user info to request object
@@ -48,7 +61,10 @@ export const authenticateToken = async (req: any, res: Response, next: NextFunct
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({ message: 'Token expired' });
         } else if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ message: 'Invalid token' });
+            return res.status(401).json({
+                message: 'Invalid token',
+                details: 'The JWT token is malformed or was signed with a different secret. Please login again to obtain a new token.'
+            });
         }
 
         return res.status(500).json({ message: 'Authentication failed' });
@@ -84,7 +100,15 @@ export const requireAuth = [authenticateToken];
 export const optionalAuth = async (req: any, res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers['authorization'];
-        const token = authHeader && authHeader.split(' ')[1];
+        let token: string | undefined;
+
+        if (authHeader) {
+            if (authHeader.startsWith('Bearer ')) {
+                token = authHeader.split(' ')[1];
+            } else {
+                token = authHeader;
+            }
+        }
 
         if (token) {
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
