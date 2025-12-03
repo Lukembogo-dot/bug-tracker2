@@ -4,6 +4,7 @@ export interface Comment {
   UserID: number;
   CommentText: string;
   CreatedAt: Date;
+  Username?: string;
 }
 
 export interface CreateComment {
