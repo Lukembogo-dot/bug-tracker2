@@ -13,16 +13,16 @@ const userRoutes = (app:Express) => {
     app.post('/api/users/login', userController.loginUserController);
 
     // GET /users/profile - Get current user profile
-    app.get('/api/users/profile', userController.getUserProfileController);
+    app.get('/api/users/profile', requireAuth, userController.getUserProfileController);
 
     // PUT /users/profile - Update user profile
-    app.put('/api/users/profile', userController.updateUserProfileController);
+    app.put('/api/users/profile', requireAuth, userController.updateUserProfileController);
 
     // PUT /users/change-password - Change password
-    app.put('/api/users/change-password', userController.updateUserPasswordController);
+    app.put('/api/users/change-password', requireAuth, userController.updateUserPasswordController);
 
     // DELETE /users/:id - Delete user
-    app.delete('/api/users/:id', userController.deleteUserController);
+    app.delete('/api/users/:id', requireAuth, userController.deleteUserController);
 }
 
 export default userRoutes;
