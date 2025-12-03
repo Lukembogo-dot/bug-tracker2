@@ -3,28 +3,28 @@ import * as commentController from "../controllers/comment.controller";
 import { requireAuth } from "../middleware/auth.middleware";
 
 const commentRoutes = (app:Express) => {
-    // GET /api/comments - Retrieve all comments
-    app.get('/api/comments', requireAuth, commentController.getAllCommentsController);
+    // GET /api/comments - Retrieve all comments (public)
+    app.get('/api/comments', commentController.getAllCommentsController);
 
-    // GET /api/comments/:id - Retrieve a specific comment by ID
-    app.get('/api/comments/:id', requireAuth, commentController.getCommentByIdController);
+    // GET /api/comments/:id - Retrieve a specific comment by ID (public)
+    app.get('/api/comments/:id', commentController.getCommentByIdController);
 
-    // GET /api/comments/bug/:bugId - Retrieve all comments for a specific bug
-    app.get('/api/comments/bug/:bugId', requireAuth, commentController.getCommentsByBugController);
+    // GET /api/comments/bug/:bugId - Retrieve all comments for a specific bug (public)
+    app.get('/api/comments/bug/:bugId', commentController.getCommentsByBugController);
 
-    // GET /api/comments/user/:userId - Retrieve all comments by a specific user
-    app.get('/api/comments/user/:userId', requireAuth, commentController.getCommentsByUserController);
+    // GET /api/comments/user/:userId - Retrieve all comments by a specific user (public)
+    app.get('/api/comments/user/:userId', commentController.getCommentsByUserController);
 
-    // POST /api/comments - Create a new comment
+    // POST /api/comments - Create a new comment (requires auth)
     app.post('/api/comments', requireAuth, commentController.createCommentController);
 
-    // PUT /api/comments/:id - Update an existing comment
+    // PUT /api/comments/:id - Update an existing comment (requires auth)
     app.put('/api/comments/:id', requireAuth, commentController.updateCommentController);
 
-    // DELETE /api/comments/:id - Delete a specific comment
+    // DELETE /api/comments/:id - Delete a specific comment (requires auth)
     app.delete('/api/comments/:id', requireAuth, commentController.deleteCommentController);
 
-    // DELETE /api/comments/bug/:bugId - Delete all comments for a specific bug
+    // DELETE /api/comments/bug/:bugId - Delete all comments for a specific bug (requires auth)
     app.delete('/api/comments/bug/:bugId', requireAuth, commentController.deleteCommentsByBugController);
 }
 
