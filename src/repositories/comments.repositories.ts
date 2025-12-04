@@ -8,10 +8,11 @@ export class CommentRepository {
     try {
       const pool: Pool = await getPool();
       const result = await pool.query(`
-        SELECT c.*, u.Username
-        FROM Comments c
-        JOIN Users u ON c.UserID = u.UserID
-        ORDER BY c.CreatedAt DESC
+        SELECT c.commenttext, u.username, c.createdat
+        FROM comments c
+        JOIN users u ON c.userid = u.userid
+        ORDER BY c.createdat DESC;
+
       `);
       return result.rows;
     } catch (error) {
