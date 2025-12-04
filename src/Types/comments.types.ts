@@ -7,6 +7,7 @@ export interface Comment {
   Username?: string;
 }
 
+
 export interface CreateComment {
   BugID: number;
   UserID: number;

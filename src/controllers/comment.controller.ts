@@ -113,8 +113,13 @@ export const getCommentsByUserController = async (req: Request, res: Response) =
  */
 export const createCommentController = async (req: Request, res: Response) => {
     try {
+        const bugId = parseInt(req.body.BugID);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: "Invalid BugID: must be a number" });
+        }
         const commentData = {
-            ...req.body,
+            BugID: bugId,
+            CommentText: req.body.CommentText,
             UserID: (req as any).user.userId
         };
         const comment = await createComment(commentData);

@@ -77,13 +77,15 @@ export class CommentRepository {
     try {
       const pool: Pool = await getPool();
       const result = await pool.query(`
+        WITH inserted AS (
         INSERT INTO Comments (BugID, UserID, CommentText)
         VALUES ($1, $2, $3)
-        RETURNING c.*, u.Username
-        FROM Comments c
-        JOIN Users u ON c.UserID = u.UserID
-        WHERE c.CommentID = (SELECT LASTVAL())
-      `, [commentData.BugID, commentData.UserID, commentData.CommentText]);
+        RETURNING *  
+        )
+        SELECT i.*, u.Username
+        FROM inserted i
+        JOIN Users u ON i.UserID = u.UserID;
+`, [commentData.BugID, commentData.UserID, commentData.CommentText]);
 
       // Alternative approach: insert and then select with join
       const insertResult = await pool.query(
