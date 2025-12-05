@@ -113,14 +113,14 @@ export const getCommentsByUserController = async (req: Request, res: Response) =
  */
 export const createCommentController = async (req: Request, res: Response) => {
     try {
-        const bugId = parseInt(req.body.BugID);
+        const bugId = parseInt(req.body.bugid);
         if (isNaN(bugId)) {
-            return res.status(400).json({ message: "Invalid BugID: must be a number" });
+            return res.status(400).json({ message: "Invalid bugid: must be a number" });
         }
         const commentData = {
-            BugID: bugId,
-            CommentText: req.body.CommentText,
-            UserID: (req as any).user.userId
+            bugid: bugId,
+            commenttext: req.body.commenttext,
+            userid: (req as any).user.userId
         };
         const comment = await createComment(commentData);
         res.status(201).json({
@@ -145,7 +145,9 @@ export const createCommentController = async (req: Request, res: Response) => {
 export const updateCommentController = async (req: Request, res: Response) => {
     try {
         const commentId = parseInt(req.params.id);
-        const commentData = req.body;
+        const commentData = {
+            commenttext: req.body.commenttext
+        };
         const comment = await updateComment(commentId, commentData);
         if (!comment) {
             return res.status(404).json({ message: "Comment not found" });

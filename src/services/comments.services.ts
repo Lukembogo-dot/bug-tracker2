@@ -6,49 +6,49 @@ import { Response } from 'express';
 import { Request } from 'express';
 
 const validateAndParseCommentData = async (body: any): Promise<CreateComment> => {
-    const { BugID, UserID, CommentText } = body ?? {};
+    const { bugid, userid, commenttext } = body ?? {};
 
-    if (!BugID || !UserID || !CommentText) {
-        throw new Error("Missing required fields: BugID, UserID, and CommentText are required");
+    if (!bugid || !userid || !commenttext) {
+        throw new Error("Missing required fields: bugid, userid, and commenttext are required");
     }
 
-    if (typeof BugID !== 'number' || typeof UserID !== 'number' || typeof CommentText !== 'string') {
-        throw new Error("Invalid field types: BugID and UserID must be numbers, CommentText must be string");
+    if (typeof bugid !== 'number' || typeof userid !== 'number' || typeof commenttext !== 'string') {
+        throw new Error("Invalid field types: bugid and userid must be numbers, commenttext must be string");
     }
 
-    const commentText = CommentText.trim();
-    if (commentText.length === 0) {
-        throw new Error("CommentText cannot be empty");
+    const trimmedCommentText = commenttext.trim();
+    if (trimmedCommentText.length === 0) {
+        throw new Error("commenttext cannot be empty");
     }
 
     // Validate bug exists
-    const bug = await BugRepository.getBugById(BugID);
+    const bug = await BugRepository.getBugById(bugid);
     if (!bug) {
-        throw new Error("Invalid BugID: Bug does not exist");
+        throw new Error("Invalid bugid: Bug does not exist");
     }
 
     // Validate user exists
-    const user = await UserRepository.getUserById(UserID);
+    const user = await UserRepository.getUserById(userid);
     if (!user) {
-        throw new Error("Invalid UserID: User does not exist");
+        throw new Error("Invalid userid: User does not exist");
     }
 
     return {
-        BugID,
-        UserID,
-        CommentText: commentText
+        bugid,
+        userid,
+        commenttext: trimmedCommentText
     };
 };
 
 const validateAndParseUpdateCommentData = (body: any): UpdateComment => {
-    const { CommentText } = body ?? {};
+    const { commenttext } = body ?? {};
 
-    if (CommentText !== undefined && (typeof CommentText !== 'string' || CommentText.trim().length === 0)) {
-        throw new Error("Invalid CommentText: Must be non-empty string");
+    if (commenttext !== undefined && (typeof commenttext !== 'string' || commenttext.trim().length === 0)) {
+        throw new Error("Invalid commenttext: Must be non-empty string");
     }
 
     return {
-        CommentText: CommentText ? CommentText.trim() : undefined
+        commenttext: commenttext ? commenttext.trim() : undefined
     };
 };
 

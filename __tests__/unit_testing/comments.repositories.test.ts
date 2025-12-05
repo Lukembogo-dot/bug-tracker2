@@ -1,15 +1,15 @@
 
 
     describe("CommentRepository Mock", () => {
-         test("comments can be retreived from the database", async () => {
-            const mockComment ={
-                            CommentID: 1,
-                            BugID: 1,
-                            UserID: 1,
-                            CommentText: "This is a comment",
-                            CreatedAt: new Date(),
-                            UpdatedAt: new Date()
-    };
+          test("comments can be retreived from the database", async () => {
+             const mockComment ={
+                             commentid: 1,
+                             bugid: 1,
+                             userid: 1,
+                             commenttext: "This is a comment",
+                             createdat: new Date(),
+                             username: "testuser"
+     };
 
         jest.spyOn(CommentRepository, "getCommentById").mockResolvedValueOnce(mockComment);
 
@@ -36,25 +36,28 @@ describe("Comment service testing", () => {
   it("should return a list of all comments", async () => {
     const mockComments: any = [
       {
-        CommentID: 1,
-        BugID: 1,
-        UserID: 1,
-        CommentText: "This is a critical bug that needs immediate attention",
-        CreatedAt: new Date("2025-10-30T14:30:00Z")
+        commentid: 1,
+        bugid: 1,
+        userid: 1,
+        commenttext: "This is a critical bug that needs immediate attention",
+        createdat: new Date("2025-10-30T14:30:00Z"),
+        username: "user1"
       },
       {
-        CommentID: 2,
-        BugID: 1,
-        UserID: 2,
-        CommentText: "I'm working on fixing this issue",
-        CreatedAt: new Date("2025-10-31T10:15:00Z")
+        commentid: 2,
+        bugid: 1,
+        userid: 2,
+        commenttext: "I'm working on fixing this issue",
+        createdat: new Date("2025-10-31T10:15:00Z"),
+        username: "user2"
       },
       {
-        CommentID: 3,
-        BugID: 2,
-        UserID: 1,
-        CommentText: "This bug is related to the authentication module",
-        CreatedAt: new Date("2025-11-01T09:00:00Z")
+        commentid: 3,
+        bugid: 2,
+        userid: 1,
+        commenttext: "This bug is related to the authentication module",
+        createdat: new Date("2025-11-01T09:00:00Z"),
+        username: "user1"
       }
     ];
 
@@ -68,11 +71,12 @@ describe("Comment service testing", () => {
 
   it("should get a comment by ID", async () => {
     const mockComment = {
-      CommentID: 1,
-      BugID: 1,
-      UserID: 1,
-      CommentText: "This is a critical bug that needs immediate attention",
-      CreatedAt: new Date("2025-10-30T14:30:00Z")
+      commentid: 1,
+      bugid: 1,
+      userid: 1,
+      commenttext: "This is a critical bug that needs immediate attention",
+      createdat: new Date("2025-10-30T14:30:00Z"),
+      username: "testuser"
     };
 
     (CommentRepository.getCommentById as jest.Mock).mockResolvedValue(mockComment);
@@ -86,18 +90,20 @@ describe("Comment service testing", () => {
   it("should get comments by bug ID", async () => {
     const mockComments: any = [
       {
-        CommentID: 1,
-        BugID: 1,
-        UserID: 1,
-        CommentText: "This is a critical bug that needs immediate attention",
-        CreatedAt: new Date("2025-10-30T14:30:00Z")
+        commentid: 1,
+        bugid: 1,
+        userid: 1,
+        commenttext: "This is a critical bug that needs immediate attention",
+        createdat: new Date("2025-10-30T14:30:00Z"),
+        username: "user1"
       },
       {
-        CommentID: 2,
-        BugID: 1,
-        UserID: 2,
-        CommentText: "I'm working on fixing this issue",
-        CreatedAt: new Date("2025-10-31T10:15:00Z")
+        commentid: 2,
+        bugid: 1,
+        userid: 2,
+        commenttext: "I'm working on fixing this issue",
+        createdat: new Date("2025-10-31T10:15:00Z"),
+        username: "user2"
       }
     ];
 
@@ -112,18 +118,20 @@ describe("Comment service testing", () => {
   it("should get comments by user ID", async () => {
     const mockComments: any = [
       {
-        CommentID: 1,
-        BugID: 1,
-        UserID: 1,
-        CommentText: "This is a critical bug that needs immediate attention",
-        CreatedAt: new Date("2025-10-30T14:30:00Z")
+        commentid: 1,
+        bugid: 1,
+        userid: 1,
+        commenttext: "This is a critical bug that needs immediate attention",
+        createdat: new Date("2025-10-30T14:30:00Z"),
+        username: "user1"
       },
       {
-        CommentID: 3,
-        BugID: 2,
-        UserID: 1,
-        CommentText: "This bug is related to the authentication module",
-        CreatedAt: new Date("2025-11-01T09:00:00Z")
+        commentid: 3,
+        bugid: 2,
+        userid: 1,
+        commenttext: "This bug is related to the authentication module",
+        createdat: new Date("2025-11-01T09:00:00Z"),
+        username: "user1"
       }
     ];
 
@@ -137,36 +145,37 @@ describe("Comment service testing", () => {
 
   it("should create a comment successfully", async () => {
     const mockCommentData = {
-      BugID: 1,
-      UserID: 1,
-      CommentText: "This is a new comment"
+      bugid: 1,
+      userid: 1,
+      commenttext: "This is a new comment"
     };
 
     const mockCreatedComment = {
-      CommentID: 1,
+      commentid: 1,
       ...mockCommentData,
-      CreatedAt: new Date("2025-11-04T12:00:00Z")
+      createdat: new Date("2025-11-04T12:00:00Z"),
+      username: "testuser"
     };
 
     const mockBug = {
-      BugID: 1,
-      Title: "Test Bug",
-      Description: "Test Description",
-      Status: "Open",
-      Priority: "High",
-      CreatedBy: 1,
-      AssignedTo: null,
-      CreatedAt: new Date(),
-      UpdatedAt: new Date()
+      bugid: 1,
+      title: "Test Bug",
+      description: "Test Description",
+      status: "Open",
+      priority: "High",
+      projectid: 1,
+      reportedby: 1,
+      assignedto: null,
+      createdat: new Date()
     };
 
     const mockUser = {
-      UserID: 1,
-      Username: "testuser",
-      Email: "test@example.com",
-      PasswordHash: "hashedpassword",
-      Role: "user",
-      CreatedAt: new Date()
+      userid: 1,
+      username: "testuser",
+      email: "test@example.com",
+      passwordhash: "hashedpassword",
+      role: "user",
+      createdat: new Date()
     };
 
     (BugRepository.getBugById as jest.Mock).mockResolvedValue(mockBug);
@@ -183,15 +192,16 @@ describe("Comment service testing", () => {
 
   it("should update a comment successfully", async () => {
     const mockUpdateData = {
-      CommentText: "Updated comment text"
+      commenttext: "Updated comment text"
     };
 
     const mockUpdatedComment = {
-      CommentID: 1,
-      BugID: 1,
-      UserID: 1,
-      CommentText: "Updated comment text",
-      CreatedAt: new Date("2025-10-30T14:30:00Z")
+      commentid: 1,
+      bugid: 1,
+      userid: 1,
+      commenttext: "Updated comment text",
+      createdat: new Date("2025-10-30T14:30:00Z"),
+      username: "testuser"
     };
 
     (CommentRepository.updateComment as jest.Mock).mockResolvedValue(mockUpdatedComment);
@@ -239,54 +249,54 @@ describe("Comment service testing", () => {
 
   it("should fail to create comment with missing required fields", async () => {
     const incompleteData = {
-      BugID: 1,
-      UserID: 1
-      // Missing CommentText
+      bugid: 1,
+      userid: 1
+      // Missing commenttext
     };
 
     await expect(CommentServices.createComment(incompleteData)).rejects.toThrow(
-      "Missing required fields: BugID, UserID, and CommentText are required"
+      "Missing required fields: bugid, userid, and commenttext are required"
     );
   });
 
   it("should fail to create comment with invalid field types", async () => {
     const invalidData = {
-      BugID: "not a number",
-      UserID: 1,
-      CommentText: "Valid text"
+      bugid: "not a number",
+      userid: 1,
+      commenttext: "Valid text"
     };
 
     await expect(CommentServices.createComment(invalidData)).rejects.toThrow(
-      "Invalid field types: BugID and UserID must be numbers, CommentText must be string"
+      "Invalid field types: bugid and userid must be numbers, commenttext must be string"
     );
   });
 
   it("should fail to create comment with empty comment text", async () => {
     const emptyTextData = {
-      BugID: 1,
-      UserID: 1,
-      CommentText: "   "
+      bugid: 1,
+      userid: 1,
+      commenttext: "   "
     };
 
     const mockBug = {
-      BugID: 1,
-      Title: "Test Bug",
-      Description: "Test Description",
-      Status: "Open",
-      Priority: "High",
-      CreatedBy: 1,
-      AssignedTo: null,
-      CreatedAt: new Date(),
-      UpdatedAt: new Date()
+      bugid: 1,
+      title: "Test Bug",
+      description: "Test Description",
+      status: "Open",
+      priority: "High",
+      projectid: 1,
+      reportedby: 1,
+      assignedto: null,
+      createdat: new Date()
     };
 
     const mockUser = {
-      UserID: 1,
-      Username: "testuser",
-      Email: "test@example.com",
-      PasswordHash: "hashedpassword",
-      Role: "user",
-      CreatedAt: new Date()
+      userid: 1,
+      username: "testuser",
+      email: "test@example.com",
+      passwordhash: "hashedpassword",
+      role: "user",
+      createdat: new Date()
     };
 
     (BugRepository.getBugById as jest.Mock).mockResolvedValue(mockBug);
@@ -299,9 +309,9 @@ describe("Comment service testing", () => {
 
   it("should fail to create comment with invalid bug ID", async () => {
     const invalidBugData = {
-      BugID: 999,
-      UserID: 1,
-      CommentText: "Valid comment text"
+      bugid: 999,
+      userid: 1,
+      commenttext: "Valid comment text"
     };
 
     (BugRepository.getBugById as jest.Mock).mockResolvedValue(null);
@@ -313,21 +323,21 @@ describe("Comment service testing", () => {
 
   it("should fail to create comment with invalid user ID", async () => {
     const invalidUserData = {
-      BugID: 1,
-      UserID: 999,
-      CommentText: "Valid comment text"
+      bugid: 1,
+      userid: 999,
+      commenttext: "Valid comment text"
     };
 
     const mockBug = {
-      BugID: 1,
-      Title: "Test Bug",
-      Description: "Test Description",
-      Status: "Open",
-      Priority: "High",
-      CreatedBy: 1,
-      AssignedTo: null,
-      CreatedAt: new Date(),
-      UpdatedAt: new Date()
+      bugid: 1,
+      title: "Test Bug",
+      description: "Test Description",
+      status: "Open",
+      priority: "High",
+      projectid: 1,
+      reportedby: 1,
+      assignedto: null,
+      createdat: new Date()
     };
 
     (BugRepository.getBugById as jest.Mock).mockResolvedValue(mockBug);
@@ -340,7 +350,7 @@ describe("Comment service testing", () => {
 
   it("should fail to update comment with invalid comment ID", async () => {
     const updateData = {
-      CommentText: "Updated text"
+      commenttext: "Updated text"
     };
 
     await expect(CommentServices.updateComment(NaN, updateData)).rejects.toThrow('Invalid comment ID');
@@ -356,7 +366,7 @@ describe("Comment service testing", () => {
 
   it("should fail to update comment with invalid comment text", async () => {
     const invalidUpdateData = {
-      CommentText: "   "
+      commenttext: "   "
     };
 
     await expect(CommentServices.updateComment(1, invalidUpdateData)).rejects.toThrow(

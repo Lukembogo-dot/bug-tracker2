@@ -51,6 +51,22 @@ describe('Comment Routes Integration Tests', () => {
         projectid: projectId,
         reportedby: userId
       });
+
+    it('should create a new comment', async () => {
+      const response = await request(app)
+        .post('/comments')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          bugid: bugId,
+          userid: userId,
+          commenttext: 'This is a test comment'
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('message', 'Comment created successfully');
+      expect(response.body).toHaveProperty('comment');
+      commentId = response.body.comment.commentid;
+    });
     bugId = bugResponse.body.bug.BugID;
   });
 
@@ -69,14 +85,15 @@ describe('Comment Routes Integration Tests', () => {
       .post('/comments')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        BugID: bugId,
-        CommentText: 'This is a test comment'
+        bugid: bugId,
+        userid: userId,
+        commenttext: 'This is a test comment'
       });
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('message', 'Comment created successfully');
     expect(response.body).toHaveProperty('comment');
-    commentId = response.body.comment.CommentID;
+    commentId = response.body.comment.commentid;
   });
 
   it('should get comment by id', async () => {
@@ -86,7 +103,7 @@ describe('Comment Routes Integration Tests', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('comment');
-    expect(response.body.comment.CommentID).toBe(commentId);
+    expect(response.body.comment.commentid).toBe(commentId);
   });
 
   it('should get comments by bug', async () => {
@@ -114,7 +131,7 @@ describe('Comment Routes Integration Tests', () => {
       .put(`/comments/${commentId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        CommentText: 'Updated test comment'
+        commenttext: 'Updated test comment'
       });
 
     expect(response.status).toBe(200);
@@ -137,8 +154,9 @@ describe('Comment Routes Integration Tests', () => {
       .post('/comments')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        BugID: bugId,
-        CommentText: 'Another test comment'
+        bugid: bugId,
+        userid: userId,
+        commenttext: 'Another test comment'
       });
 
     const response = await request(app)

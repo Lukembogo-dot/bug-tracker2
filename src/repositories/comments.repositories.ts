@@ -80,17 +80,17 @@ export class CommentRepository {
         WITH inserted AS (
         INSERT INTO Comments (BugID, UserID, CommentText)
         VALUES ($1, $2, $3)
-        RETURNING *  
+        RETURNING *
         )
         SELECT i.*, u.Username
         FROM inserted i
         JOIN Users u ON i.UserID = u.UserID;
-`, [commentData.BugID, commentData.UserID, commentData.CommentText]);
+`, [commentData.bugid, commentData.userid, commentData.commenttext]);
 
       // Alternative approach: insert and then select with join
       const insertResult = await pool.query(
         'INSERT INTO Comments (BugID, UserID, CommentText) VALUES ($1, $2, $3) RETURNING CommentID',
-        [commentData.BugID, commentData.UserID, commentData.CommentText]
+        [commentData.bugid, commentData.userid, commentData.commenttext]
       );
 
       const newCommentId = insertResult.rows[0].CommentID;
@@ -111,7 +111,7 @@ export class CommentRepository {
   // Update comment
   static async updateComment(commentId: number, commentData: UpdateComment): Promise<Comment | null> {
     try {
-      if (!commentData.CommentText) {
+      if (!commentData.commenttext) {
         throw new Error('Comment text is required for update');
       }
 
@@ -122,12 +122,12 @@ export class CommentRepository {
         FROM Comments c
         JOIN Users u ON c.UserID = u.UserID
         WHERE c.CommentID = $2
-      `, [commentData.CommentText, commentId]);
+      `, [commentData.commenttext, commentId]);
 
       // Alternative approach
       await pool.query(
         'UPDATE Comments SET CommentText = $1 WHERE CommentID = $2',
-        [commentData.CommentText, commentId]
+        [commentData.commenttext, commentId]
       );
 
       const selectResult = await pool.query(`

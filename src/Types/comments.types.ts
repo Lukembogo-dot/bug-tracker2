@@ -1,19 +1,19 @@
 export interface Comment {
-  CommentID: number;
-  BugID: number;
-  UserID: number;
-  CommentText: string;
-  CreatedAt: Date;
-  Username?: string;
+  commentid: number;
+  bugid: number;
+  userid: number;
+  commenttext: string;
+  createdat: Date;
+  username?: string;
 }
 
 
 export interface CreateComment {
-  BugID: number;
-  UserID: number;
-  CommentText: string;
+  bugid: number;
+  userid: number;
+  commenttext: string;
 }
 
 export interface UpdateComment {
-  CommentText?: string;
+  commenttext?: string;
 }
