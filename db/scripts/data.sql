@@ -30,8 +30,10 @@ CREATE TABLE Projects (
     ProjectName VARCHAR(150) NOT NULL,
     Description TEXT,
     CreatedBy INT NOT NULL,
+    AssignedTo INT NULL,
     CreatedAt TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID)
+    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID),
+    FOREIGN KEY (AssignedTo) REFERENCES Users(UserID)
 );
 
 -- 3. BUGS TABLE
@@ -70,11 +72,11 @@ VALUES
 ('SarahQA', 'sarah@example.com', '$2b$10$pwYhqZoYJ2oN8/41BGWeNe.ci.fUQkpNKRl6PlI0E/v3f7XGynNTe', 'QA Engineer');
 
 -- Insert sample data into Projects table
-INSERT INTO Projects (ProjectName, Description, CreatedBy, CreatedAt)
+INSERT INTO Projects (ProjectName, Description, CreatedBy, AssignedTo)
 VALUES
-('E-Farm', 'AI-powered digital farming management system', 1, GETDATE()),
-('Autofix', 'Garage and mechanic booking platform', 1, GETDATE()),
-('SportsHub', 'Athlete management and event tracking system', 2, GETDATE());
+('E-Farm', 'AI-powered digital farming management system', 1, 2),
+('Autofix', 'Garage and mechanic booking platform', 1, 3),
+('SportsHub', 'Athlete management and event tracking system', 2, 4);
 
 -- Insert sample data into Bugs table
 INSERT INTO Bugs (Title, Description, Status, Priority, ProjectID, ReportedBy, AssignedTo)

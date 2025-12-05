@@ -11,18 +11,20 @@ describe("Project service testing", () => {
   it("should return a list of all projects", async () => {
     const mockProjects: any = [
       {
-        ProjectID: 1,
-        ProjectName: "Bug Tracker App",
-        Description: "A comprehensive bug tracking application",
-        CreatedBy: 1,
-        CreatedAt: new Date("2025-10-30T14:30:00Z")
+        projectid: 1,
+        projectname: "Bug Tracker App",
+        description: "A comprehensive bug tracking application",
+        createdby: 1,
+        assignedto: 2,
+        createdat: new Date("2025-10-30T14:30:00Z")
       },
       {
-        ProjectID: 2,
-        ProjectName: "E-commerce Platform",
-        Description: "Online shopping platform",
-        CreatedBy: 2,
-        CreatedAt: new Date("2025-11-01T10:00:00Z")
+        projectid: 2,
+        projectname: "E-commerce Platform",
+        description: "Online shopping platform",
+        createdby: 2,
+        assignedto: 3,
+        createdat: new Date("2025-11-01T10:00:00Z")
       }
     ];
 
@@ -36,11 +38,12 @@ describe("Project service testing", () => {
 
   it("should get a project by ID", async () => {
     const mockProject = {
-      ProjectID: 1,
-      ProjectName: "Bug Tracker App",
-      Description: "A comprehensive bug tracking application",
-      CreatedBy: 1,
-      CreatedAt: new Date("2025-10-30T14:30:00Z")
+      projectid: 1,
+      projectname: "Bug Tracker App",
+      description: "A comprehensive bug tracking application",
+      createdby: 1,
+      assignedto: 2,
+      createdat: new Date("2025-10-30T14:30:00Z")
     };
 
     (ProjectRepository.getProjectById as jest.Mock).mockResolvedValue(mockProject);
@@ -51,52 +54,55 @@ describe("Project service testing", () => {
     expect(ProjectRepository.getProjectById).toHaveBeenCalledWith(1);
   });
 
-  it("should get projects by creator ID", async () => {
+  it("should get projects by assignee ID", async () => {
     const mockProjects: any = [
       {
-        ProjectID: 1,
-        ProjectName: "Bug Tracker App",
-        Description: "A comprehensive bug tracking application",
-        CreatedBy: 1,
-        CreatedAt: new Date("2025-10-30T14:30:00Z")
+        projectid: 1,
+        projectname: "Bug Tracker App",
+        description: "A comprehensive bug tracking application",
+        createdby: 1,
+        assignedto: 2,
+        createdat: new Date("2025-10-30T14:30:00Z")
       },
       {
-        ProjectID: 2,
-        ProjectName: "Task Manager",
-        Description: "Simple task management tool",
-        CreatedBy: 1,
-        CreatedAt: new Date("2025-11-01T10:00:00Z")
+        projectid: 2,
+        projectname: "Task Manager",
+        description: "Simple task management tool",
+        createdby: 1,
+        assignedto: 2,
+        createdat: new Date("2025-11-01T10:00:00Z")
       }
     ];
 
-    (ProjectRepository.getProjectsByCreator as jest.Mock).mockResolvedValue(mockProjects);
+    (ProjectRepository.getProjectsByAssignee as jest.Mock).mockResolvedValue(mockProjects);
 
-    const projects = await ProjectServices.getProjectsByCreator(1);
+    const projects = await ProjectServices.getProjectsByAssignee(2);
 
     expect(projects).toEqual(mockProjects);
-    expect(ProjectRepository.getProjectsByCreator).toHaveBeenCalledWith(1);
+    expect(ProjectRepository.getProjectsByAssignee).toHaveBeenCalledWith(2);
   });
 
   it("should create a project successfully", async () => {
     const mockProjectData = {
-      ProjectName: "New Project",
-      Description: "A new project description",
-      CreatedBy: 1
+      projectname: "New Project",
+      description: "A new project description",
+      createdby: 1,
+      assignedto: 2
     };
 
     const mockCreatedProject = {
-      ProjectID: 1,
+      projectid: 1,
       ...mockProjectData,
-      CreatedAt: new Date("2025-11-04T12:00:00Z")
+      createdat: new Date("2025-11-04T12:00:00Z")
     };
 
     const mockUser = {
-      UserID: 1,
-      Username: "testuser",
-      Email: "test@example.com",
-      PasswordHash: "hashedpassword",
-      Role: "user",
-      CreatedAt: new Date()
+      userid: 1,
+      username: "testuser",
+      email: "test@example.com",
+      passwordhash: "hashedpassword",
+      role: "user",
+      createdat: new Date()
     };
 
     (UserRepository.getUserById as jest.Mock).mockResolvedValue(mockUser);
@@ -111,16 +117,18 @@ describe("Project service testing", () => {
 
   it("should update a project successfully", async () => {
     const mockUpdateData = {
-      ProjectName: "Updated Project Name",
-      Description: "Updated description"
+      projectname: "Updated Project Name",
+      description: "Updated description",
+      assignedto: 3
     };
 
     const mockUpdatedProject = {
-      ProjectID: 1,
-      ProjectName: "Updated Project Name",
-      Description: "Updated description",
-      CreatedBy: 1,
-      CreatedAt: new Date("2025-10-30T14:30:00Z")
+      projectid: 1,
+      projectname: "Updated Project Name",
+      description: "Updated description",
+      createdby: 1,
+      assignedto: 3,
+      createdat: new Date("2025-10-30T14:30:00Z")
     };
 
     (ProjectRepository.updateProject as jest.Mock).mockResolvedValue(mockUpdatedProject);
@@ -145,8 +153,8 @@ describe("Project service testing", () => {
     await expect(ProjectServices.getProjectById(NaN)).rejects.toThrow('Invalid project ID');
   });
 
-  it("should fail to get projects by creator with invalid creator ID", async () => {
-    await expect(ProjectServices.getProjectsByCreator(NaN)).rejects.toThrow('Invalid creator ID');
+  it("should fail to get projects by assignee with invalid assignee ID", async () => {
+    await expect(ProjectServices.getProjectsByAssignee(NaN)).rejects.toThrow('Invalid assignee ID');
   });
 
   it("should fail to create project without data", async () => {
@@ -155,30 +163,30 @@ describe("Project service testing", () => {
 
   it("should fail to create project with missing required fields", async () => {
     const incompleteData = {
-      Description: "Some description"
-      // Missing ProjectName and CreatedBy
+      description: "Some description"
+      // Missing projectname and createdby
     };
 
     await expect(ProjectServices.createProject(incompleteData)).rejects.toThrow(
-      "Missing required fields: ProjectName and CreatedBy are required"
+      "Missing required fields: projectname and createdby are required"
     );
   });
 
   it("should fail to create project with invalid field types", async () => {
     const invalidData = {
-      ProjectName: 123, // Should be string
-      CreatedBy: "not a number" // Should be number
+      projectname: 123, // Should be string
+      createdby: "not a number" // Should be number
     };
 
     await expect(ProjectServices.createProject(invalidData)).rejects.toThrow(
-      "Invalid field types: ProjectName must be string, CreatedBy must be number"
+      "Invalid field types: projectname must be string, createdby must be number"
     );
   });
 
   it("should fail to create project with empty project name", async () => {
     const emptyNameData = {
-      ProjectName: "   ",
-      CreatedBy: 1
+      projectname: "   ",
+      createdby: 1
     };
 
     const mockUser = {

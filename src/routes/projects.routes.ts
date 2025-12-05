@@ -9,10 +9,10 @@ const projectRoutes = (app:Express) => {
     // GET /projects/:id - Retrieve a specific project by ID
     app.get('/api/projects/:id', requireAuth, projectController.getProjectByIdController);
 
-    // GET /projects/creator/:creatorId - Retrieve projects by creator
-    app.get('/api/projects/creator/:creatorId', requireAuth, projectController.getProjectsByCreatorController);
+    // GET /projects/assignee/:assigneeId - Retrieve projects by assignee
+    app.get('/api/projects/assignee/:assigneeId', requireAuth, projectController.getProjectsByAssigneeController);
 
-    // POST /projects - Create a new project
+    // POST /projects - Create a new project (admin only)
     app.post('/api/projects', requireAuth, projectController.createProjectController);
 
     // PUT /projects/:id - Update an existing project

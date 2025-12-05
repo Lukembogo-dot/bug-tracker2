@@ -1,18 +1,21 @@
 export interface Project {
-  ProjectID: number;
-  ProjectName: string;
-  Description: string | null;
-  CreatedBy: number;
-  CreatedAt: Date;
+  projectid: number;
+  projectname: string;
+  description: string | null;
+  createdby: number;
+  assignedto: number | null;
+  createdat: Date;
 }
 
 export interface CreateProject {
-  ProjectName: string;
-  Description?: string;
-  CreatedBy: number;
+  projectname: string;
+  description?: string;
+  createdby: number;
+  assignedto?: number;
 }
 
 export interface UpdateProject {
-  ProjectName?: string;
-  Description?: string;
+  projectname?: string;
+  description?: string;
+  assignedto?: number;
 }

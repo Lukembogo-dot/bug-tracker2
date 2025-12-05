@@ -3,44 +3,54 @@ import { UserRepository } from "../repositories/user.repositories";
 import { Project, CreateProject, UpdateProject } from "../Types/projects.types";
 
 const validateAndParseProjectData = async (body: any): Promise<CreateProject> => {
-    const { ProjectName, Description, CreatedBy } = body ?? {};
+    const { projectname, description, createdby, assignedto } = body ?? {};
 
-    if (!ProjectName || !CreatedBy) {
-        throw new Error("Missing required fields: ProjectName and CreatedBy are required");
+    if (!projectname || !createdby) {
+        throw new Error("Missing required fields: projectname and createdby are required");
     }
 
-    if (typeof ProjectName !== 'string' || typeof CreatedBy !== 'number') {
-        throw new Error("Invalid field types: ProjectName must be string, CreatedBy must be number");
+    if (typeof projectname !== 'string' || typeof createdby !== 'number') {
+        throw new Error("Invalid field types: projectname must be string, createdby must be number");
     }
 
-    const projectName = ProjectName.trim();
-    if (projectName.length === 0) {
-        throw new Error("ProjectName cannot be empty");
+    const trimmedProjectName = projectname.trim();
+    if (trimmedProjectName.length === 0) {
+        throw new Error("projectname cannot be empty");
     }
 
     // Validate user exists
-    const user = await UserRepository.getUserById(CreatedBy);
+    const user = await UserRepository.getUserById(createdby);
     if (!user) {
-        throw new Error("Invalid CreatedBy: User does not exist");
+        throw new Error("Invalid createdby: User does not exist");
+    }
+
+    // Validate assignee exists if provided
+    if (assignedto !== undefined) {
+        const assignee = await UserRepository.getUserById(assignedto);
+        if (!assignee) {
+            throw new Error("Invalid assignedto: User does not exist");
+        }
     }
 
     return {
-        ProjectName: projectName,
-        Description: Description || undefined,
-        CreatedBy
+        projectname: trimmedProjectName,
+        description: description || undefined,
+        createdby,
+        assignedto: assignedto || undefined
     };
 };
 
 const validateAndParseUpdateProjectData = (body: any): UpdateProject => {
-    const { ProjectName, Description } = body ?? {};
+    const { projectname, description, assignedto } = body ?? {};
 
-    if (ProjectName !== undefined && (typeof ProjectName !== 'string' || ProjectName.trim().length === 0)) {
-        throw new Error("Invalid ProjectName: Must be non-empty string");
+    if (projectname !== undefined && (typeof projectname !== 'string' || projectname.trim().length === 0)) {
+        throw new Error("Invalid projectname: Must be non-empty string");
     }
 
     return {
-        ProjectName: ProjectName ? ProjectName.trim() : undefined,
-        Description
+        projectname: projectname ? projectname.trim() : undefined,
+        description,
+        assignedto
     };
 };
 
@@ -70,17 +80,17 @@ export const getProjectById = async (projectId: number): Promise<Project | null>
     }
 };
 
-// Get projects by creator
-export const getProjectsByCreator = async (creatorId: number): Promise<Project[]> => {
+// Get projects by assignee
+export const getProjectsByAssignee = async (assigneeId: number): Promise<Project[]> => {
     try {
-        if (isNaN(creatorId)) {
-            throw new Error('Invalid creator ID');
+        if (isNaN(assigneeId)) {
+            throw new Error('Invalid assignee ID');
         }
 
-        const projects: Project[] = await ProjectRepository.getProjectsByCreator(creatorId);
+        const projects: Project[] = await ProjectRepository.getProjectsByAssignee(assigneeId);
         return projects;
     } catch (error: any) {
-        console.error('Error fetching projects by creator:', error);
+        console.error('Error fetching projects by assignee:', error);
         throw error;
     }
 };

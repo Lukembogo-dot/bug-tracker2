@@ -15,7 +15,7 @@ import { handleControllerError } from '../utils/errorHandler';
 import {
     getAllProjects,
     getProjectById,
-    getProjectsByCreator,
+    getProjectsByAssignee,
     createProject,
     updateProject,
     deleteProject
@@ -64,19 +64,19 @@ export const getProjectByIdController = async (req: Request, res: Response) => {
 };
 
 /**
- * GET /projects/creator/:creatorId - Retrieve projects by creator
+ * GET /projects/assignee/:assigneeId - Retrieve projects by assignee
  *
- * Returns all projects created by a specific user.
- * Useful for user dashboards, profile pages, and tracking project ownership.
- * Helps users see their project creation history and contributions.
+ * Returns all projects assigned to a specific user.
+ * Useful for user dashboards and task management.
+ * Shows users the projects they are responsible for.
  *
- * @param req - Express request object with creatorId in params
+ * @param req - Express request object with assigneeId in params
  * @param res - Express response object
  */
-export const getProjectsByCreatorController = async (req: Request, res: Response) => {
+export const getProjectsByAssigneeController = async (req: Request, res: Response) => {
     try {
-        const creatorId = parseInt(req.params.creatorId);
-        const projects = await getProjectsByCreator(creatorId);
+        const assigneeId = parseInt(req.params.assigneeId);
+        const projects = await getProjectsByAssignee(assigneeId);
         res.json({ projects });
     } catch (error: any) {
         handleControllerError(error, res);
@@ -86,8 +86,8 @@ export const getProjectsByCreatorController = async (req: Request, res: Response
 /**
  * POST /projects - Create a new project
  *
- * Creates a new project in the system with the authenticated user as creator.
- * Requires project name and associates it with the creator.
+ * Creates a new project in the system. Only admins can create projects.
+ * Requires project name and associates it with the creator and assignee.
  * Returns the created project with 201 status and generated ID.
  *
  * @param req - Express request object with project data in body
@@ -95,9 +95,16 @@ export const getProjectsByCreatorController = async (req: Request, res: Response
  */
 export const createProjectController = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+
+        // Check if user is admin
+        if (user.role !== 'Admin') {
+            return res.status(403).json({ message: "Only admins can create projects" });
+        }
+
         const projectData = {
             ...req.body,
-            CreatedBy: (req as any).user.userId
+            createdby: user.userId
         };
         const project = await createProject(projectData);
         res.status(201).json({

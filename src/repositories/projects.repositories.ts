@@ -27,14 +27,14 @@ export class ProjectRepository {
     }
   }
 
-  // Get projects by creator
-  static async getProjectsByCreator(creatorId: number): Promise<Project[]> {
+  // Get projects by assignee
+  static async getProjectsByAssignee(assigneeId: number): Promise<Project[]> {
     try {
       const pool: Pool = await getPool();
-      const result = await pool.query('SELECT * FROM Projects WHERE CreatedBy = $1 ORDER BY CreatedAt DESC', [creatorId]);
+      const result = await pool.query('SELECT * FROM Projects WHERE AssignedTo = $1 ORDER BY CreatedAt DESC', [assigneeId]);
       return result.rows;
     } catch (error) {
-      console.error('Error fetching projects by creator:', error);
+      console.error('Error fetching projects by assignee:', error);
       throw error;
     }
   }
@@ -44,8 +44,8 @@ export class ProjectRepository {
     try {
       const pool: Pool = await getPool();
       const result = await pool.query(
-        'INSERT INTO Projects (ProjectName, Description, CreatedBy) VALUES ($1, $2, $3) RETURNING *',
-        [projectData.ProjectName, projectData.Description || null, projectData.CreatedBy]
+        'INSERT INTO Projects (ProjectName, Description, CreatedBy, AssignedTo) VALUES ($1, $2, $3, $4) RETURNING *',
+        [projectData.projectname, projectData.description || null, projectData.createdby, projectData.assignedto || null]
       );
       return result.rows[0];
     } catch (error) {
@@ -61,13 +61,17 @@ export class ProjectRepository {
       const values: any[] = [];
       let paramIndex = 1;
 
-      if (projectData.ProjectName) {
+      if (projectData.projectname) {
         updateFields.push(`ProjectName = $${paramIndex++}`);
-        values.push(projectData.ProjectName);
+        values.push(projectData.projectname);
       }
-      if (projectData.Description !== undefined) {
+      if (projectData.description !== undefined) {
         updateFields.push(`Description = $${paramIndex++}`);
-        values.push(projectData.Description);
+        values.push(projectData.description);
+      }
+      if (projectData.assignedto !== undefined) {
+        updateFields.push(`AssignedTo = $${paramIndex++}`);
+        values.push(projectData.assignedto);
       }
 
       if (updateFields.length === 0) {
