@@ -44,12 +44,12 @@ describe('Comment Routes Integration Tests', () => {
       .post('/bugs')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        Title: 'Test Bug for Comments',
-        Description: 'This is a test bug for comments',
-        Status: 'Open',
-        Priority: 'High',
-        ProjectID: projectId,
-        ReportedBy: userId
+        title: 'Test Bug for Comments',
+        description: 'This is a test bug for comments',
+        status: 'Open',
+        priority: 'High',
+        projectid: projectId,
+        reportedby: userId
       });
     bugId = bugResponse.body.bug.BugID;
   });

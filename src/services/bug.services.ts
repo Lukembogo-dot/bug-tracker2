@@ -3,75 +3,75 @@ import { ProjectRepository } from "../repositories/projects.repositories";
 import { Bug, CreateBug, UpdateBug } from "../Types/bugs.types";
 
 const validateAndParseBugData = async (body: any): Promise<CreateBug> => {
-    const { Title, Description, Status, Priority, ProjectID, ReportedBy, AssignedTo } = body ?? {};
+    const { title, description, status, priority, projectid, reportedby, assignedto } = body ?? {};
 
-    if (!Title || !ProjectID) {
-        throw new Error("Missing required fields: Title and ProjectID are required");
+    if (!title || !projectid) {
+        throw new Error("Missing required fields: title and projectid are required");
     }
 
-    if (typeof Title !== 'string' || typeof ProjectID !== 'number') {
-        throw new Error("Invalid field types: Title must be string, ProjectID must be number");
+    if (typeof title !== 'string' || typeof projectid !== 'number') {
+        throw new Error("Invalid field types: title must be string, projectid must be number");
     }
 
-    const title = Title.trim();
-    if (title.length === 0) {
-        throw new Error("Title cannot be empty");
+    const trimmedTitle = title.trim();
+    if (trimmedTitle.length === 0) {
+        throw new Error("title cannot be empty");
     }
 
     // Validate project exists
-    const project = await ProjectRepository.getProjectById(ProjectID);
+    const project = await ProjectRepository.getProjectById(projectid);
     if (!project) {
         throw new Error("Invalid ProjectID: Project does not exist");
     }
 
     // Validate status if provided
     const validStatuses = ['Open', 'In Progress', 'Resolved', 'Closed'];
-    if (Status && !validStatuses.includes(Status)) {
+    if (status && !validStatuses.includes(status)) {
         throw new Error(`Invalid Status: Must be one of ${validStatuses.join(', ')}`);
     }
 
     // Validate priority if provided
     const validPriorities = ['Low', 'Medium', 'High', 'Critical'];
-    if (Priority && !validPriorities.includes(Priority)) {
+    if (priority && !validPriorities.includes(priority)) {
         throw new Error(`Invalid Priority: Must be one of ${validPriorities.join(', ')}`);
     }
 
     return {
-        title: title,
-        description: Description || undefined,
-        status: Status || 'Open',
-        priority: Priority || 'Medium',
-        projectid: ProjectID,
-        reportedby: ReportedBy || undefined,
-        assignedto: AssignedTo || undefined
+        title: trimmedTitle,
+        description: description || undefined,
+        status: status || 'Open',
+        priority: priority || 'Medium',
+        projectid: projectid,
+        reportedby: reportedby || undefined,
+        assignedto: assignedto || undefined
     };
 };
 
 const validateAndParseUpdateBugData = (body: any): UpdateBug => {
-    const { Title, Description, Status, Priority, AssignedTo } = body ?? {};
+    const { title, description, status, priority, assignedto } = body ?? {};
 
-    if (Title !== undefined && (typeof Title !== 'string' || Title.trim().length === 0)) {
-        throw new Error("Invalid Title: Must be non-empty string");
+    if (title !== undefined && (typeof title !== 'string' || title.trim().length === 0)) {
+        throw new Error("Invalid title: Must be non-empty string");
     }
 
     // Validate status if provided
     const validStatuses = ['Open', 'In Progress', 'Resolved', 'Closed'];
-    if (Status && !validStatuses.includes(Status)) {
-        throw new Error(`Invalid Status: Must be one of ${validStatuses.join(', ')}`);
+    if (status && !validStatuses.includes(status)) {
+        throw new Error(`Invalid status: Must be one of ${validStatuses.join(', ')}`);
     }
 
     // Validate priority if provided
     const validPriorities = ['Low', 'Medium', 'High', 'Critical'];
-    if (Priority && !validPriorities.includes(Priority)) {
-        throw new Error(`Invalid Priority: Must be one of ${validPriorities.join(', ')}`);
+    if (priority && !validPriorities.includes(priority)) {
+        throw new Error(`Invalid priority: Must be one of ${validPriorities.join(', ')}`);
     }
 
     return {
-        title: Title ? Title.trim() : undefined,
-        description: Description,
-        status: Status,
-        priority: Priority,
-        assignedto: AssignedTo
+        title: title ? title.trim() : undefined,
+        description: description,
+        status: status,
+        priority: priority,
+        assignedto: assignedto
     };
 };
 

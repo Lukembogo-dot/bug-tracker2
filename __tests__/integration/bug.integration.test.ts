@@ -54,12 +54,12 @@ describe('Bug Routes Integration Tests', () => {
       .post('/bugs')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        Title: 'Test Bug',
-        Description: 'This is a test bug',
-        Status: 'Open',
-        Priority: 'High',
-        ProjectID: projectId,
-        ReportedBy: userId
+        title: 'Test Bug',
+        description: 'This is a test bug',
+        status: 'Open',
+        priority: 'High',
+        projectid: projectId,
+        reportedby: userId
       });
 
     expect(response.status).toBe(201);
@@ -123,8 +123,8 @@ describe('Bug Routes Integration Tests', () => {
       .put(`/bugs/${bugId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        Status: 'In Progress',
-        Priority: 'Medium'
+        status: 'In Progress',
+        priority: 'Medium'
       });
 
     expect(response.status).toBe(200);
