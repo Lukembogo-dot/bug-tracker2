@@ -37,13 +37,13 @@ const validateAndParseBugData = async (body: any): Promise<CreateBug> => {
     }
 
     return {
-        Title: title,
-        Description: Description || undefined,
-        Status: Status || 'Open',
-        Priority: Priority || 'Medium',
-        ProjectID,
-        ReportedBy: ReportedBy || undefined,
-        AssignedTo: AssignedTo || undefined
+        title: title,
+        description: Description || undefined,
+        status: Status || 'Open',
+        priority: Priority || 'Medium',
+        projectid: ProjectID,
+        reportedby: ReportedBy || undefined,
+        assignedto: AssignedTo || undefined
     };
 };
 
@@ -67,11 +67,11 @@ const validateAndParseUpdateBugData = (body: any): UpdateBug => {
     }
 
     return {
-        Title: Title ? Title.trim() : undefined,
-        Description,
-        Status,
-        Priority,
-        AssignedTo
+        title: Title ? Title.trim() : undefined,
+        description: Description,
+        status: Status,
+        priority: Priority,
+        assignedto: AssignedTo
     };
 };
 

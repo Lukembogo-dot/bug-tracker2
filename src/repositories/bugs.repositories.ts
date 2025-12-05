@@ -81,7 +81,7 @@ export class BugRepository {
       const pool: Pool = await getPool();
       const result = await pool.query(
         'INSERT INTO Bugs (Title, Description, Status, Priority, ProjectID, ReportedBy, AssignedTo) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [bugData.Title, bugData.Description || null, bugData.Status || 'Open', bugData.Priority || 'Medium', bugData.ProjectID, bugData.ReportedBy || null, bugData.AssignedTo || null]
+        [bugData.title, bugData.description || null, bugData.status || 'Open', bugData.priority || 'Medium', bugData.projectid, bugData.reportedby || null, bugData.assignedto || null]
       );
       return result.rows[0];
     } catch (error) {
@@ -97,25 +97,25 @@ export class BugRepository {
       const values: any[] = [];
       let paramIndex = 1;
 
-      if (bugData.Title) {
+      if (bugData.title) {
         updateFields.push(`Title = $${paramIndex++}`);
-        values.push(bugData.Title);
+        values.push(bugData.title);
       }
-      if (bugData.Description !== undefined) {
+      if (bugData.description !== undefined) {
         updateFields.push(`Description = $${paramIndex++}`);
-        values.push(bugData.Description);
+        values.push(bugData.description);
       }
-      if (bugData.Status) {
+      if (bugData.status) {
         updateFields.push(`Status = $${paramIndex++}`);
-        values.push(bugData.Status);
+        values.push(bugData.status);
       }
-      if (bugData.Priority) {
+      if (bugData.priority) {
         updateFields.push(`Priority = $${paramIndex++}`);
-        values.push(bugData.Priority);
+        values.push(bugData.priority);
       }
-      if (bugData.AssignedTo !== undefined) {
+      if (bugData.assignedto !== undefined) {
         updateFields.push(`AssignedTo = $${paramIndex++}`);
-        values.push(bugData.AssignedTo);
+        values.push(bugData.assignedto);
       }
 
       if (updateFields.length === 0) {

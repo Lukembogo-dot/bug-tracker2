@@ -1,29 +1,29 @@
 export interface Bug {
-  BugID: number;
-  Title: string;
-  Description: string | null;
-  Status: string;
-  Priority: string;
-  ProjectID: number;
-  ReportedBy: number | null;
-  AssignedTo: number | null;
-  CreatedAt: Date;
+ bugid: number;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  projectid: number;
+  reportedby: number | null;
+  assignedto: number | null;
+  createdat: Date;
 }
 
 export interface CreateBug {
-  Title: string;
-  Description?: string;
-  Status?: string;
-  Priority?: string;
-  ProjectID: number;
-  ReportedBy?: number;
-  AssignedTo?: number;
+  title: string;
+  description?: string;
+  status?: string;
+  priority?: string;
+  projectid: number;
+  reportedby?: number;
+  assignedto?: number;
 }
 
 export interface UpdateBug {
-  Title?: string;
-  Description?: string;
-  Status?: string;
-  Priority?: string;
-  AssignedTo?: number;
+  title?: string;
+  description?: string;
+  status?: string;
+  priority?: string;
+  assignedto?: number;
 }
