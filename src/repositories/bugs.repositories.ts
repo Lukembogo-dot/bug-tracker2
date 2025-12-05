@@ -80,7 +80,7 @@ export class BugRepository {
     try {
       const pool: Pool = await getPool();
       const result = await pool.query(
-        'INSERT INTO Bugs (Title, Description, Status, Priority, ProjectID, ReportedBy, AssignedTo) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        'INSERT INTO Bugs (title, description, status, priority, projectid, reportedby, assignedto) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
         [bugData.title, bugData.description || null, bugData.status || 'Open', bugData.priority || 'Medium', bugData.projectid, bugData.reportedby || null, bugData.assignedto || null]
       );
       return result.rows[0];
