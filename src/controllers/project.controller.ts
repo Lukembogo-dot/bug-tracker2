@@ -20,6 +20,7 @@ import {
     updateProject,
     deleteProject
 } from '../services/projects.services';
+import { getBugCountByProject } from '../services/bug.services';
 
 /**
  * GET /projects - Retrieve all projects
@@ -121,7 +122,7 @@ export const createProjectController = async (req: Request, res: Response) => {
  *
  * Modifies project information such as name or description.
  * Supports partial updates - only provided fields are changed.
- * Should be restricted to project creators or administrators.
+ * Restricted to project creators or administrators.
  * Returns 404 if the project doesn't exist.
  *
  * @param req - Express request object with project ID in params and update data in body
@@ -129,12 +130,22 @@ export const createProjectController = async (req: Request, res: Response) => {
  */
 export const updateProjectController = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
         const projectId = parseInt(req.params.id);
-        const projectData = req.body;
-        const project = await updateProject(projectId, projectData);
-        if (!project) {
+
+        // Get project to check ownership
+        const existingProject = await getProjectById(projectId);
+        if (!existingProject) {
             return res.status(404).json({ message: "Project not found" });
         }
+
+        // Check permissions: admin or creator
+        if (user.role !== 'Admin' && user.userId !== existingProject.createdby) {
+            return res.status(403).json({ message: "Forbidden: Only project creators or administrators can update projects" });
+        }
+
+        const projectData = req.body;
+        const project = await updateProject(projectId, projectData);
         res.json({
             message: "Project updated successfully",
             project
@@ -148,9 +159,9 @@ export const updateProjectController = async (req: Request, res: Response) => {
  * DELETE /projects/:id - Delete a project
  *
  * Permanently removes a project from the system.
- * Should cascade to delete associated bugs and comments.
- * Highly destructive operation - should be restricted to administrators
- * or project creators with proper confirmation.
+ * Cascades to delete associated bugs and comments.
+ * Highly destructive operation - restricted to administrators
+ * or project creators. Warns about dependencies.
  * Returns 404 if the project doesn't exist.
  *
  * @param req - Express request object with project ID in params
@@ -158,11 +169,31 @@ export const updateProjectController = async (req: Request, res: Response) => {
  */
 export const deleteProjectController = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
         const projectId = parseInt(req.params.id);
-        const deleted = await deleteProject(projectId);
-        if (!deleted) {
+
+        // Get project to check ownership and dependencies
+        const existingProject = await getProjectById(projectId);
+        if (!existingProject) {
             return res.status(404).json({ message: "Project not found" });
         }
+
+        // Check permissions: admin or creator
+        if (user.role !== 'Admin' && user.userId !== existingProject.createdby) {
+            return res.status(403).json({ message: "Forbidden: Only project creators or administrators can delete projects" });
+        }
+
+        // Check for dependencies (bugs)
+        const bugCount = await getBugCountByProject(projectId); // Need to implement this
+        if (bugCount > 0 && !req.body.force) {
+            return res.status(409).json({
+                message: `Project has ${bugCount} associated bug(s). Deletion will cascade and remove all bugs and their comments. Add {"force": true} to body to confirm.`,
+                bugCount,
+                requiresConfirmation: true
+            });
+        }
+
+        const deleted = await deleteProject(projectId);
         res.json({ message: "Project deleted successfully" });
     } catch (error: any) {
         handleControllerError(error, res);

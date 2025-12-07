@@ -137,6 +137,7 @@ export const createCommentController = async (req: Request, res: Response) => {
  *
  * Modifies the text content of a comment.
  * Only the comment text can be changed - bug and user associations are fixed.
+ * Restricted to comment authors or administrators.
  * Returns 404 if the comment doesn't exist.
  *
  * @param req - Express request object with comment ID in params and update data in body
@@ -144,14 +145,24 @@ export const createCommentController = async (req: Request, res: Response) => {
  */
 export const updateCommentController = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
         const commentId = parseInt(req.params.id);
+
+        // Get comment to check ownership
+        const existingComment = await getCommentById(commentId);
+        if (!existingComment) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+
+        // Check permissions: admin or author
+        if (user.role !== 'Admin' && user.userId !== existingComment.userid) {
+            return res.status(403).json({ message: "Forbidden: Only comment authors or administrators can update comments" });
+        }
+
         const commentData = {
             commenttext: req.body.commenttext
         };
         const comment = await updateComment(commentId, commentData);
-        if (!comment) {
-            return res.status(404).json({ message: "Comment not found" });
-        }
         res.json({
             message: "Comment updated successfully",
             comment
@@ -165,7 +176,7 @@ export const updateCommentController = async (req: Request, res: Response) => {
  * DELETE /comments/:id - Delete a specific comment
  *
  * Permanently removes a comment from the discussion thread.
- * Should be restricted to comment authors or administrators.
+ * Restricted to comment authors or administrators.
  * Returns 404 if the comment doesn't exist.
  *
  * @param req - Express request object with comment ID in params
@@ -173,11 +184,21 @@ export const updateCommentController = async (req: Request, res: Response) => {
  */
 export const deleteCommentController = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
         const commentId = parseInt(req.params.id);
-        const deleted = await deleteComment(commentId);
-        if (!deleted) {
+
+        // Get comment to check ownership
+        const existingComment = await getCommentById(commentId);
+        if (!existingComment) {
             return res.status(404).json({ message: "Comment not found" });
         }
+
+        // Check permissions: admin or author
+        if (user.role !== 'Admin' && user.userId !== existingComment.userid) {
+            return res.status(403).json({ message: "Forbidden: Only comment authors or administrators can delete comments" });
+        }
+
+        const deleted = await deleteComment(commentId);
         res.json({ message: "Comment deleted successfully" });
     } catch (error: any) {
         handleControllerError(error, res);

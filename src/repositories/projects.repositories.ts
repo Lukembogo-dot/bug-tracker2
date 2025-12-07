@@ -107,4 +107,16 @@ export class ProjectRepository {
       throw error;
     }
   }
+
+  // Get project count by user (created by)
+  static async getProjectCountByUser(userId: number): Promise<number> {
+    try {
+      const pool: Pool = await getPool();
+      const result = await pool.query('SELECT COUNT(*) as count FROM Projects WHERE CreatedBy = $1', [userId]);
+      return parseInt(result.rows[0].count);
+    } catch (error) {
+      console.error('Error fetching project count by user:', error);
+      throw error;
+    }
+  }
 }

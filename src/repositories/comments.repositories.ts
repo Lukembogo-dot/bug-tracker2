@@ -167,4 +167,16 @@ export class CommentRepository {
       throw error;
     }
   }
+
+  // Get comment count by bug
+  static async getCommentCountByBug(bugId: number): Promise<number> {
+    try {
+      const pool: Pool = await getPool();
+      const result = await pool.query('SELECT COUNT(*) as count FROM Comments WHERE BugID = $1', [bugId]);
+      return parseInt(result.rows[0].count);
+    } catch (error) {
+      console.error('Error fetching comment count by bug:', error);
+      throw error;
+    }
+  }
 }

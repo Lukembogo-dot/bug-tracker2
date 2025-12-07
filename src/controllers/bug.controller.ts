@@ -25,6 +25,7 @@ import {
     updateBug,
     deleteBug
 } from '../services/bug.services';
+import { getCommentCountByBug } from '../services/comments.services';
 
 /**
  * GET /bugs - Retrieve all bugs
@@ -169,6 +170,7 @@ export const createBugController = async (req: Request, res: Response) => {
  *
  * Modifies an existing bug with new information.
  * Supports partial updates - only provided fields are changed.
+ * Restricted to bug reporters, assignees, or administrators.
  * Returns 404 if the bug doesn't exist.
  *
  * @param req - Express request object with bug ID in params and update data in body
@@ -176,12 +178,22 @@ export const createBugController = async (req: Request, res: Response) => {
  */
 export const updateBugController = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
         const bugId = parseInt(req.params.id);
-        const bugData = req.body;
-        const bug = await updateBug(bugId, bugData);
-        if (!bug) {
+
+        // Get bug to check ownership
+        const existingBug = await getBugById(bugId);
+        if (!existingBug) {
             return res.status(404).json({ message: "Bug not found" });
         }
+
+        // Check permissions: admin or reporter or assignee
+        if (user.role !== 'Admin' && user.userId !== existingBug.reportedby && user.userId !== existingBug.assignedto) {
+            return res.status(403).json({ message: "Forbidden: Only bug reporters, assignees, or administrators can update bugs" });
+        }
+
+        const bugData = req.body;
+        const bug = await updateBug(bugId, bugData);
         res.json({
             message: "Bug updated successfully",
             bug
@@ -199,6 +211,8 @@ export const updateBugController = async (req: Request, res: Response) => {
  *
  * Permanently removes a bug from the system.
  * Associated comments are automatically deleted due to CASCADE constraints.
+ * Restricted to bug reporters, assignees, or administrators.
+ * Warns about associated comments.
  * Returns 404 if the bug doesn't exist.
  *
  * @param req - Express request object with bug ID in params
@@ -206,11 +220,31 @@ export const updateBugController = async (req: Request, res: Response) => {
  */
 export const deleteBugController = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
         const bugId = parseInt(req.params.id);
-        const deleted = await deleteBug(bugId);
-        if (!deleted) {
+
+        // Get bug to check ownership and dependencies
+        const existingBug = await getBugById(bugId);
+        if (!existingBug) {
             return res.status(404).json({ message: "Bug not found" });
         }
+
+        // Check permissions: admin or reporter or assignee
+        if (user.role !== 'Admin' && user.userId !== existingBug.reportedby && user.userId !== existingBug.assignedto) {
+            return res.status(403).json({ message: "Forbidden: Only bug reporters, assignees, or administrators can delete bugs" });
+        }
+
+        // Check for dependencies (comments)
+        const commentCount = await getCommentCountByBug(bugId); // Need to implement this
+        if (commentCount > 0 && !req.body.force) {
+            return res.status(409).json({
+                message: `Bug has ${commentCount} associated comment(s). Deletion will cascade and remove all comments. Add {"force": true} to body to confirm.`,
+                commentCount,
+                requiresConfirmation: true
+            });
+        }
+
+        const deleted = await deleteBug(bugId);
         res.json({ message: "Bug deleted successfully" });
     } catch (error: any) {
         if (error.message === "Invalid bug ID") {

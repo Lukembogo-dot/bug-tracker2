@@ -149,3 +149,18 @@ export const deleteProject = async (projectId: number): Promise<boolean> => {
         throw error;
     }
 };
+
+// Get project count by user
+export const getProjectCountByUser = async (userId: number): Promise<number> => {
+    try {
+        if (isNaN(userId)) {
+            throw new Error('Invalid user ID');
+        }
+
+        const count = await ProjectRepository.getProjectCountByUser(userId);
+        return count;
+    } catch (error: any) {
+        console.error('Error fetching project count by user:', error);
+        throw error;
+    }
+};

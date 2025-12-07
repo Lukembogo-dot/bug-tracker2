@@ -151,4 +151,28 @@ export class BugRepository {
       throw error;
     }
   }
+
+  // Get bug count by project
+  static async getBugCountByProject(projectId: number): Promise<number> {
+    try {
+      const pool: Pool = await getPool();
+      const result = await pool.query('SELECT COUNT(*) as count FROM Bugs WHERE ProjectID = $1', [projectId]);
+      return parseInt(result.rows[0].count);
+    } catch (error) {
+      console.error('Error fetching bug count by project:', error);
+      throw error;
+    }
+  }
+
+  // Get bug count by user (reported by or assigned to)
+  static async getBugCountByUser(userId: number): Promise<number> {
+    try {
+      const pool: Pool = await getPool();
+      const result = await pool.query('SELECT COUNT(*) as count FROM Bugs WHERE ReportedBy = $1 OR AssignedTo = $1', [userId]);
+      return parseInt(result.rows[0].count);
+    } catch (error) {
+      console.error('Error fetching bug count by user:', error);
+      throw error;
+    }
+  }
 }

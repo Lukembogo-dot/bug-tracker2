@@ -177,3 +177,18 @@ export const deleteCommentsByBug = async (bugId: number): Promise<number> => {
         throw error;
     }
 };
+
+// Get comment count by bug
+export const getCommentCountByBug = async (bugId: number): Promise<number> => {
+    try {
+        if (isNaN(bugId)) {
+            throw new Error('Invalid bug ID');
+        }
+
+        const count = await CommentRepository.getCommentCountByBug(bugId);
+        return count;
+    } catch (error: any) {
+        console.error('Error fetching comment count by bug:', error);
+        throw error;
+    }
+};

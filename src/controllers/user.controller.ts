@@ -9,6 +9,8 @@ import {
     deleteUser
 } from '../services/user.services';
 import { handleControllerError } from '../utils/errorHandler';
+import { getProjectCountByUser } from '../services/projects.services';
+import { getBugCountByUser } from '../services/bug.services';
 
 // Get all users
 export const getAllUsersController = async (req: Request, res: Response) => {
@@ -111,9 +113,22 @@ export const deleteUserController = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Invalid user ID" });
         }
         const currentUser = (req as any).user;
-        if (currentUser.userId !== userId && currentUser.role !== 'admin') {
-            return res.status(403).json({ message: "Forbidden: Can only delete your own account or require admin role" });
+        if (currentUser.userId !== userId && currentUser.role !== 'Admin') {
+            return res.status(403).json({ message: "Forbidden: Can only delete your own account or require Admin role" });
         }
+
+        // Check for dependencies (projects and bugs)
+        const projectCount = await getProjectCountByUser(userId); // Need to implement
+        const bugCount = await getBugCountByUser(userId); // Need to implement
+        if ((projectCount > 0 || bugCount > 0) && !req.body.force) {
+            return res.status(409).json({
+                message: `User has ${projectCount} project(s) and ${bugCount} bug(s). Deletion may affect related data. Add {"force": true} to body to confirm.`,
+                projectCount,
+                bugCount,
+                requiresConfirmation: true
+            });
+        }
+
         await deleteUser(userId);
         res.status(204).send();
     } catch (error: any) {

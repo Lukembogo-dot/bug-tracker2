@@ -215,3 +215,33 @@ export const deleteBug = async (bugId: number): Promise<boolean> => {
         throw error;
     }
 };
+
+// Get bug count by project
+export const getBugCountByProject = async (projectId: number): Promise<number> => {
+    try {
+        if (isNaN(projectId)) {
+            throw new Error('Invalid project ID');
+        }
+
+        const count = await BugRepository.getBugCountByProject(projectId);
+        return count;
+    } catch (error: any) {
+        console.error('Error fetching bug count by project:', error);
+        throw error;
+    }
+};
+
+// Get bug count by user
+export const getBugCountByUser = async (userId: number): Promise<number> => {
+    try {
+        if (isNaN(userId)) {
+            throw new Error('Invalid user ID');
+        }
+
+        const count = await BugRepository.getBugCountByUser(userId);
+        return count;
+    } catch (error: any) {
+        console.error('Error fetching bug count by user:', error);
+        throw error;
+    }
+};
