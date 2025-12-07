@@ -118,9 +118,9 @@ export const deleteUserController = async (req: Request, res: Response) => {
         }
 
         // Check for dependencies (projects and bugs)
-        const projectCount = await getProjectCountByUser(userId); // Need to implement
-        const bugCount = await getBugCountByUser(userId); // Need to implement
-        if ((projectCount > 0 || bugCount > 0) && !req.body.force) {
+        const projectCount = await getProjectCountByUser(userId);
+        const bugCount = await getBugCountByUser(userId);
+        if ((projectCount > 0 || bugCount > 0) && !(req.body && req.body.force)) {
             return res.status(409).json({
                 message: `User has ${projectCount} project(s) and ${bugCount} bug(s). Deletion may affect related data. Add {"force": true} to body to confirm.`,
                 projectCount,

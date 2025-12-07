@@ -57,6 +57,9 @@ export const getAllBugsController = async (req: Request, res: Response) => {
 export const getBugByIdController = async (req: Request, res: Response) => {
     try {
         const bugId = parseInt(req.params.id);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: "Invalid bug ID: must be a number" });
+        }
         const bug = await getBugById(bugId);
         if (!bug) {
             return res.status(404).json({ message: "Bug not found" });
@@ -79,6 +82,9 @@ export const getBugByIdController = async (req: Request, res: Response) => {
 export const getBugsByProjectController = async (req: Request, res: Response) => {
     try {
         const projectId = parseInt(req.params.projectId);
+        if (isNaN(projectId)) {
+            return res.status(400).json({ message: "Invalid project ID: must be a number" });
+        }
         const bugs = await getBugsByProject(projectId);
         res.json({ bugs });
     } catch (error: any) {
@@ -98,6 +104,9 @@ export const getBugsByProjectController = async (req: Request, res: Response) =>
 export const getBugsByAssigneeController = async (req: Request, res: Response) => {
     try {
         const assigneeId = parseInt(req.params.assigneeId);
+        if (isNaN(assigneeId)) {
+            return res.status(400).json({ message: "Invalid assignee ID: must be a number" });
+        }
         const bugs = await getBugsByAssignee(assigneeId);
         res.json({ bugs });
     } catch (error: any) {
@@ -117,6 +126,9 @@ export const getBugsByAssigneeController = async (req: Request, res: Response) =
 export const getBugsByReporterController = async (req: Request, res: Response) => {
     try {
         const reporterId = parseInt(req.params.reporterId);
+        if (isNaN(reporterId)) {
+            return res.status(400).json({ message: "Invalid reporter ID: must be a number" });
+        }
         const bugs = await getBugsByReporter(reporterId);
         res.json({ bugs });
     } catch (error: any) {
@@ -181,6 +193,10 @@ export const updateBugController = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const bugId = parseInt(req.params.id);
 
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: "Invalid bug ID: must be a number" });
+        }
+
         // Get bug to check ownership
         const existingBug = await getBugById(bugId);
         if (!existingBug) {
@@ -223,6 +239,10 @@ export const deleteBugController = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const bugId = parseInt(req.params.id);
 
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: "Invalid bug ID: must be a number" });
+        }
+
         // Get bug to check ownership and dependencies
         const existingBug = await getBugById(bugId);
         if (!existingBug) {
@@ -235,8 +255,8 @@ export const deleteBugController = async (req: Request, res: Response) => {
         }
 
         // Check for dependencies (comments)
-        const commentCount = await getCommentCountByBug(bugId); // Need to implement this
-        if (commentCount > 0 && !req.body.force) {
+        const commentCount = await getCommentCountByBug(bugId);
+        if (commentCount > 0 && !(req.body && req.body.force)) {
             return res.status(409).json({
                 message: `Bug has ${commentCount} associated comment(s). Deletion will cascade and remove all comments. Add {"force": true} to body to confirm.`,
                 commentCount,

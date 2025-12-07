@@ -195,8 +195,8 @@ export const deleteProjectController = async (req: Request, res: Response) => {
         // No permission check - allow all authenticated users for testing
 
         // Check for dependencies (bugs)
-        const bugCount = await getBugCountByProject(projectId); // Need to implement this
-        if (bugCount > 0 && !req.body) {
+        const bugCount = await getBugCountByProject(projectId);
+        if (bugCount > 0 && !(req.body && req.body.force)) {
             return res.status(409).json({
                 message: `Project has ${bugCount} associated bug(s). Deletion will cascade and remove all bugs and their comments. Add {"force": true} to body to confirm.`,
                 bugCount,
