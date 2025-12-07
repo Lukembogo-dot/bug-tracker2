@@ -2,8 +2,8 @@ import { ProjectRepository } from '../../src/repositories/projects.repositories'
 import { UserRepository } from '../../src/repositories/user.repositories';
 import * as ProjectServices from '../../src/services/projects.services';
 
-jest.mock('../../src/repositories/projects.repositories.ts');
-jest.mock('../../src/repositories/user.repositories.ts');
+jest.mock('../../src/repositories/projects.repositories');
+jest.mock('../../src/repositories/user.repositories');
 
 describe("Project service testing", () => {
 
@@ -207,8 +207,8 @@ describe("Project service testing", () => {
 
   it("should fail to create project with invalid user ID", async () => {
     const invalidUserData = {
-      ProjectName: "Valid Project",
-      CreatedBy: 999
+      projectname: "Valid Project",
+      createdby: 999
     };
 
     (UserRepository.getUserById as jest.Mock).mockResolvedValue(null);
@@ -220,7 +220,7 @@ describe("Project service testing", () => {
 
   it("should fail to update project with invalid project ID", async () => {
     const updateData = {
-      ProjectName: "Updated name"
+      projectname: "Updated name"
     };
 
     await expect(ProjectServices.updateProject(NaN, updateData)).rejects.toThrow('Invalid project ID');
@@ -236,7 +236,7 @@ describe("Project service testing", () => {
 
   it("should fail to update project with invalid project name", async () => {
     const invalidUpdateData = {
-      ProjectName: "   "
+      projectname: "   "
     };
 
     await expect(ProjectServices.updateProject(1, invalidUpdateData)).rejects.toThrow(

@@ -18,19 +18,19 @@ const validateAndParseCommentData = async (body: any): Promise<CreateComment> =>
 
     const trimmedCommentText = commenttext.trim();
     if (trimmedCommentText.length === 0) {
-        throw new Error("commenttext cannot be empty");
+        throw new Error("CommentText cannot be empty");
     }
 
     // Validate bug exists
     const bug = await BugRepository.getBugById(bugid);
     if (!bug) {
-        throw new Error("Invalid bugid: Bug does not exist");
+        throw new Error("Invalid BugID: Bug does not exist");
     }
 
     // Validate user exists
     const user = await UserRepository.getUserById(userid);
     if (!user) {
-        throw new Error("Invalid userid: User does not exist");
+        throw new Error("Invalid UserID: User does not exist");
     }
 
     return {
@@ -44,7 +44,7 @@ const validateAndParseUpdateCommentData = (body: any): UpdateComment => {
     const { commenttext } = body ?? {};
 
     if (commenttext !== undefined && (typeof commenttext !== 'string' || commenttext.trim().length === 0)) {
-        throw new Error("Invalid commenttext: Must be non-empty string");
+        throw new Error("Invalid CommentText: Must be non-empty string");
     }
 
     return {

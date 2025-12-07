@@ -49,9 +49,9 @@ export const authenticateToken = async (req: any, res: Response, next: NextFunct
 
         // Add user info to request object
         req.user = {
-            userId: decoded.userId,
-            email: decoded.email,
-            role: decoded.role
+            userId: user.userid,
+            email: user.email,
+            role: user.role
         };
 
         next();
@@ -91,7 +91,7 @@ export const authorizeRole = (...allowedRoles: string[]) => {
 };
 
 // Combined middleware for admin-only routes
-export const requireAdmin = [authenticateToken, authorizeRole('admin')];
+export const requireAdmin = [authenticateToken, authorizeRole('Admin')];
 
 // Combined middleware for authenticated users (any role)
 export const requireAuth = [authenticateToken];

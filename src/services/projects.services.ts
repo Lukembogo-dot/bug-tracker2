@@ -15,13 +15,13 @@ const validateAndParseProjectData = async (body: any): Promise<CreateProject> =>
 
     const trimmedProjectName = projectname.trim();
     if (trimmedProjectName.length === 0) {
-        throw new Error("projectname cannot be empty");
+        throw new Error("ProjectName cannot be empty");
     }
 
     // Validate user exists
     const user = await UserRepository.getUserById(createdby);
     if (!user) {
-        throw new Error("Invalid createdby: User does not exist");
+        throw new Error("Invalid CreatedBy: User does not exist");
     }
 
     // Validate assignee exists if provided
@@ -44,7 +44,7 @@ const validateAndParseUpdateProjectData = (body: any): UpdateProject => {
     const { projectname, description, assignedto } = body ?? {};
 
     if (projectname !== undefined && (typeof projectname !== 'string' || projectname.trim().length === 0)) {
-        throw new Error("Invalid projectname: Must be non-empty string");
+        throw new Error("Invalid ProjectName: Must be non-empty string");
     }
 
     return {
