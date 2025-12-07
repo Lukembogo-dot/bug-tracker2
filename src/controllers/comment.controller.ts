@@ -52,6 +52,9 @@ export const getAllCommentsController = async (req: Request, res: Response) => {
 export const getCommentByIdController = async (req: Request, res: Response) => {
     try {
         const commentId = parseInt(req.params.id);
+        if (isNaN(commentId)) {
+            return res.status(400).json({ message: "Invalid comment ID: must be a number" });
+        }
         const comment = await getCommentById(commentId);
         if (!comment) {
             return res.status(404).json({ message: "Comment not found" });
@@ -75,6 +78,9 @@ export const getCommentByIdController = async (req: Request, res: Response) => {
 export const getCommentsByBugController = async (req: Request, res: Response) => {
     try {
         const bugId = parseInt(req.params.bugId);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: "Invalid bug ID: must be a number" });
+        }
         const comments = await getCommentsByBug(bugId);
         res.json({ comments });
     } catch (error: any) {
@@ -94,6 +100,9 @@ export const getCommentsByBugController = async (req: Request, res: Response) =>
 export const getCommentsByUserController = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.userId);
+        if (isNaN(userId)) {
+            return res.status(400).json({ message: "Invalid user ID: must be a number" });
+        }
         const comments = await getCommentsByUser(userId);
         res.json({ comments });
     } catch (error: any) {
@@ -148,6 +157,10 @@ export const updateCommentController = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const commentId = parseInt(req.params.id);
 
+        if (isNaN(commentId)) {
+            return res.status(400).json({ message: "Invalid comment ID: must be a number" });
+        }
+
         // Get comment to check ownership
         const existingComment = await getCommentById(commentId);
         if (!existingComment) {
@@ -187,6 +200,10 @@ export const deleteCommentController = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const commentId = parseInt(req.params.id);
 
+        if (isNaN(commentId)) {
+            return res.status(400).json({ message: "Invalid comment ID: must be a number" });
+        }
+
         // Get comment to check ownership
         const existingComment = await getCommentById(commentId);
         if (!existingComment) {
@@ -218,6 +235,9 @@ export const deleteCommentController = async (req: Request, res: Response) => {
 export const deleteCommentsByBugController = async (req: Request, res: Response) => {
     try {
         const bugId = parseInt(req.params.bugId);
+        if (isNaN(bugId)) {
+            return res.status(400).json({ message: "Invalid bug ID: must be a number" });
+        }
         const deletedCount = await deleteCommentsByBug(bugId);
         res.json({
             message: `${deletedCount} comments deleted successfully`
