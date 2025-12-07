@@ -196,13 +196,14 @@ export const deleteProjectController = async (req: Request, res: Response) => {
 
         // Check for dependencies (bugs)
         const bugCount = await getBugCountByProject(projectId);
-        if (bugCount > 0 && !(req.body && req.body.force)) {
+        const force = req.body?.force ?? req.query?.force ?? false;
+        if (bugCount > 0 && !force) {
             return res.status(409).json({
-                message: `Project has ${bugCount} associated bug(s). Deletion will cascade and remove all bugs and their comments. Add {"force": true} to body to confirm.`,
-                bugCount,
-                requiresConfirmation: true
-            });
-        }
+        message: `Project has ${bugCount} associated bug(s). Deletion will cascade and remove all bugs and their comments. Add {"force": true} to body or ?force=true to confirm.`,
+        bugCount,
+        requiresConfirmation: true
+    });
+}
 
         const deleted = await deleteProject(projectId);
         res.json({ message: "Project deleted successfully" });
