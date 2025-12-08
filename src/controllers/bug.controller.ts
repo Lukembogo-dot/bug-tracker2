@@ -250,7 +250,7 @@ export const deleteBugController = async (req: Request, res: Response) => {
         }
 
         // Check permissions: admin or reporter or assignee
-        if (user.role !== 'Admin' && user.userId !== existingBug.reportedby && user.userId !== existingBug.assignedto) {
+        if (user.userId !== existingBug.reportedby && user.userId !== existingBug.assignedto) {
             return res.status(403).json({ message: "Forbidden: Only bug reporters, assignees, or administrators can delete bugs" });
         }
 
