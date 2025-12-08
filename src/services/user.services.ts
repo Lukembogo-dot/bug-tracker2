@@ -110,24 +110,26 @@ export const loginUser = async (email: string, password: string) => {
 }
 
 // Delete user
-export const deleteUser = async (userId: number): Promise<boolean> => {
+export const deleteUser = async (userId: number, options?: { force?: boolean }): Promise<boolean> => {
     await ensureUserexists(userId);
 
-    // Check for dependencies before deleting
-    const pool = await getPool();
-    const projectCount = await pool.query('SELECT COUNT(*) FROM Projects WHERE CreatedBy = $1', [userId]);
-    if (parseInt(projectCount.rows[0].count) > 0) {
-        throw new AppError(ErrorType.CONFLICT, "Cannot delete user who has created projects");
-    }
+    if (!options?.force) {
+        // Check for dependencies before deleting
+        const pool = await getPool();
+        const projectCount = await pool.query('SELECT COUNT(*) FROM Projects WHERE CreatedBy = $1', [userId]);
+        if (parseInt(projectCount.rows[0].count) > 0) {
+            throw new AppError(ErrorType.CONFLICT, "Cannot delete user who has created projects");
+        }
 
-    const assignedBugCount = await pool.query('SELECT COUNT(*) FROM Bugs WHERE AssignedTo = $1', [userId]);
-    if (parseInt(assignedBugCount.rows[0].count) > 0) {
-        throw new AppError(ErrorType.CONFLICT, "Cannot delete user who is assigned to bugs");
-    }
+        const assignedBugCount = await pool.query('SELECT COUNT(*) FROM Bugs WHERE AssignedTo = $1', [userId]);
+        if (parseInt(assignedBugCount.rows[0].count) > 0) {
+            throw new AppError(ErrorType.CONFLICT, "Cannot delete user who is assigned to bugs");
+        }
 
-    const commentCount = await pool.query('SELECT COUNT(*) FROM Comments WHERE UserID = $1', [userId]);
-    if (parseInt(commentCount.rows[0].count) > 0) {
-        throw new AppError(ErrorType.CONFLICT, "Cannot delete user who has comments");
+        const commentCount = await pool.query('SELECT COUNT(*) FROM Comments WHERE UserID = $1', [userId]);
+        if (parseInt(commentCount.rows[0].count) > 0) {
+            throw new AppError(ErrorType.CONFLICT, "Cannot delete user who has comments");
+        }
     }
 
     return await UserRepository.deleteUser(userId);
