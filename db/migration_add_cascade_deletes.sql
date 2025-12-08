@@ -1,24 +1,30 @@
--- Migration to add CASCADE DELETE constraints for proper data integrity
--- Run this in your PostgreSQL database after the initial schema setup
-
 -- Add CASCADE DELETE for Projects -> Bugs (when a project is deleted, delete associated bugs)
 ALTER TABLE Bugs
-DROP CONSTRAINT bugs_projectid_fkey;
-
-ALTER TABLE Bugs
 ADD CONSTRAINT bugs_projectid_fkey
-    FOREIGN KEY (ProjectID)
-    REFERENCES Projects(ProjectID)
+    FOREIGN KEY (projectid)
+    REFERENCES Projects(projectid)
     ON DELETE CASCADE;
 
--- Optional: Add CASCADE DELETE for Users -> Projects (when a user is deleted, delete their projects)
--- Uncomment the following if you want users to be deletable with their projects
--- ALTER TABLE Projects
--- DROP CONSTRAINT projects_createdby_fkey,
--- ADD CONSTRAINT projects_createdby_fkey
---     FOREIGN KEY (CreatedBy)
---     REFERENCES Users(UserID)
---     ON DELETE CASCADE;
+ALTER TABLE Projects
+DROP CONSTRAINT projects_createdby_fkey;
+ALTER TABLE Projects
+ADD CONSTRAINT projects_createdby_fkey
+FOREIGN KEY (createdby) REFERENCES Users(userid) ON DELETE SET NULL;
 
--- Note: Comments already have ON DELETE CASCADE on BugID
--- AssignedTo and ReportedBy in Bugs have ON DELETE SET NULL
+ALTER TABLE Projects
+DROP CONSTRAINT projects_assignedto_fkey;
+ALTER TABLE Projects
+ADD CONSTRAINT projects_assignedto_fkey
+FOREIGN KEY (assignedto) REFERENCES Users(userid) ON DELETE SET NULL;
+
+ALTER TABLE Bugs
+DROP CONSTRAINT bugs_assignedto_fkey;
+ALTER TABLE Bugs
+ADD CONSTRAINT bugs_assignedto_fkey
+FOREIGN KEY (assignedto) REFERENCES Users(userid) ON DELETE SET NULL;
+
+ALTER TABLE Bugs
+DROP CONSTRAINT bugs_reportedby_fkey;
+ALTER TABLE Bugs
+ADD CONSTRAINT bugs_reportedby_fkey
+FOREIGN KEY (reportedby) REFERENCES Users(userid) ON DELETE SET NULL;
