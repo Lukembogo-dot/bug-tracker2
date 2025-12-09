@@ -1,12 +1,16 @@
 import { closePool } from '../db/config';
+import { teardownDatabase } from './dbSetup';
 
 // Increase timeout for integration tests
 jest.setTimeout(30000);
 
 // Clean up after each test to prevent data conflicts
 afterEach(async () => {
-  // Note: In a real application, you might want to clean up test data here
-  // For now, we'll rely on unique emails/timestamps to avoid conflicts
+  try {
+    await teardownDatabase();
+  } catch (error) {
+    console.error('Error during test cleanup:', error);
+  }
 });
 
 // Clean up after all tests
