@@ -37,20 +37,42 @@ app.get('/', (req, res) => {
     });
 });
 
+// Initialize database connection for both production and tests
+let dbPool: any = null;
+let isInitialized = false;
+
+const initializeDatabase = async () => {
+    if (!isInitialized) {
+        try {
+            dbPool = await getPool();
+            isInitialized = true;
+            if (process.env.NODE_ENV !== 'test') {
+                console.log("Database connected Successfully");
+            }
+        } catch (error) {
+            console.error("Database connection error:", error);
+            throw error;
+        }
+    }
+    return dbPool;
+};
+
+// For tests, initialize database connection immediately
+if (process.env.NODE_ENV === 'test') {
+    initializeDatabase().catch(err => {
+        console.error('Failed to initialize database for tests:', err);
+        process.exit(1);
+    });
+}
+
 export default app;
 
 if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, async () => {
         console.log("Starting server...");
         try {
-            const dbConnected = await getPool();
-            if(dbConnected){
-                console.log(`Server is running on http://localhost:${PORT}`);
-                console.log("Database connected Successfully");
-            }
-            else{
-                console.log("Database connection error");
-            }
+            await initializeDatabase();
+            console.log(`Server is running on http://localhost:${PORT}`);
         } catch (error) {
             console.log("Error starting the server", error);
         }
